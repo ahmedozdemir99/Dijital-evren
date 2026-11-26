@@ -140,7 +140,7 @@ export function PhilosophyCouncilModule() {
           ...prev,
           {
             q: question,
-            a: data.text ?? data.error ?? 'Sokratik yanıt üretilemedi.',
+            a: res.ok ? (data.reply ?? data.text ?? 'Sokratik yanıt üretilemedi.') : (data.error ?? 'Yapay zekâ servisi kullanılamıyor.'),
           },
         ]);
       } catch {
