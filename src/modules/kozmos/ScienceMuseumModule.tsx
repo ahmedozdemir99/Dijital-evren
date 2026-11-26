@@ -63,6 +63,8 @@ export function ScienceMuseumModule() {
 
   // Interactive Lab 3: pH Scale
   const [phVal, setPhVal] = useState(7.0);
+  const [massKg, setMassKg] = useState(2);
+  const [speed, setSpeed] = useState(5);
 
   // New Exhibit Form
   const [title, setTitle] = useState('');
@@ -329,6 +331,7 @@ export function ScienceMuseumModule() {
             </label>
             <div className="p-3 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] font-mono text-xs">
               T = 2π√(L/g) = <strong>{periodSec.toFixed(3)} s</strong>
+              <p className="mt-2 font-sans">Küçük salınım açısı, sürtünmesiz ortam ve ideal ip varsayımı.</p>
             </div>
           </div>
 
@@ -344,7 +347,7 @@ export function ScienceMuseumModule() {
             <div className="p-3 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] text-xs space-y-1">
               <p>
                 <strong>Durum:</strong>{' '}
-                {phVal < 6.8 ? 'Asidik Çözelti' : phVal > 7.2 ? 'Bazik (Alkali) Çözelti' : 'Nötr (Saf Su Dengesi)'}
+                {phVal < 7 ? 'Asidik Çözelti' : phVal > 7 ? 'Bazik (Alkali) Çözelti' : 'Nötr (25 °C)'}
               </p>
               <p className="font-mono text-[#546070] dark:text-[#9BA7B6]">
                 [H⁺] ≈ 10^(-{phVal.toFixed(1)}) mol/L
@@ -352,6 +355,21 @@ export function ScienceMuseumModule() {
             </div>
           </div>
         </div>
+      )}
+
+      {tab === 'labs' && (
+        <section className="p-5 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-3">
+          <h2 className="font-semibold">Hareket Laboratuvarı — Kinetik Enerji</h2>
+          <label className="block text-sm">Kütle: {massKg} kg
+            <input type="range" min={1} max={100} value={massKg} onChange={e => setMassKg(Number(e.target.value))} className="w-full accent-[#88B4FF]" />
+          </label>
+          <label className="block text-sm">Sürat: {speed} m/s
+            <input type="range" min={0} max={40} value={speed} onChange={e => setSpeed(Number(e.target.value))} className="w-full accent-[#88B4FF]" />
+          </label>
+          <p className="font-mono">E = ½mv² = {(0.5 * massKg * speed ** 2).toFixed(1)} J</p>
+          <p className="font-mono">Momentum = {(massKg * speed).toFixed(1)} kg·m/s</p>
+          <p className="text-xs">Klasik mekanikte sürat iki katına çıkarsa kinetik enerji dört katına çıkar.</p>
+        </section>
       )}
 
       {tab === 'galleries' && (
