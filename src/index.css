@@ -1,0 +1,81 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-serif: "Cormorant Garamond", Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-sans: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --color-canvas-dark: #10151E;
+  --color-surface-dark: #1C2633;
+  --color-accent-gold: #D6B782;
+
+  --color-center-irfan: #D5B477;
+  --color-center-kozmos: #88B4FF;
+  --color-center-idrak: #71C6BD;
+  --color-center-atolye: #A78BFA;
+  --color-center-tekamul: #93BF90;
+  --color-center-hayat: #DFA183;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: var(--font-serif);
+    text-wrap: balance;
+  }
+
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+html.font-large {
+  font-size: 112.5%;
+}
+
+html.reduced-motion *,
+html.reduced-motion *::before,
+html.reduced-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+html.high-contrast .text-\[\#546070\] {
+  color: #1e293b;
+}
+
+html.high-contrast.dark .text-\[\#9BA7B6\] {
+  color: #e2e8f0;
+}
+
+html.high-contrast .border-black\/10 {
+  border-color: rgba(0, 0, 0, 0.35);
+}
+
+html.high-contrast.dark .border-white\/10 {
+  border-color: rgba(255, 255, 255, 0.32);
+}

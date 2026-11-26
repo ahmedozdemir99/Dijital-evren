@@ -1,0 +1,6 @@
+{
+  "name": "Dijital Evrenim",
+  "description": "Bilgiden düşünceye, düşünceden hayata — edebiyat, bilim, felsefe, eğitim, tekâmül ve günlük yaşamı birleştiren kişisel dijital ekosistem.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
