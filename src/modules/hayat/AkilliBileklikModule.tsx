@@ -1,6 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import {
-  Activity,
   Heart,
   Moon,
   Footprints,
@@ -29,23 +28,19 @@ interface SmartBandPayload {
 export function AkilliBileklikModule() {
   const { moduleRecords, addModuleRecord, deleteModuleRecord, recordModuleOpen } = useAppStore();
 
-  useMemo(() => {
+  useEffect(() => {
     recordModuleOpen('akilli-bileklik');
   }, [recordModuleOpen]);
 
-  const records = useMemo(
-    () =>
-      moduleRecords.filter(
-        (r) => r.moduleId === 'akilli-bileklik' && !r.isArchived
-      ) as Array<ModuleRecord<SmartBandPayload>>,
-    [moduleRecords]
-  );
+  const records = moduleRecords.filter(
+    (r) => r.moduleId === 'akilli-bileklik' && !r.isArchived
+  ) as Array<ModuleRecord<SmartBandPayload>>;
 
   const [showNew, setShowNew] = useState(false);
-  const [steps, setSteps] = useState('8420');
-  const [heartRate, setHeartRate] = useState('72');
-  const [sleepHours, setSleepHours] = useState('7.5');
-  const [calories, setCalories] = useState('2150');
+  const [steps, setSteps] = useState('0');
+  const [heartRate, setHeartRate] = useState('0');
+  const [sleepHours, setSleepHours] = useState('0');
+  const [calories, setCalories] = useState('0');
   const [stress, setStress] = useState<'Düşük' | 'Normal' | 'Yüksek'>('Normal');
   const [notes, setNotes] = useState('');
   const [date, setDate] = useState(() => localDateIso());
@@ -61,7 +56,7 @@ export function AkilliBileklikModule() {
     await addModuleRecord<SmartBandPayload>({
       moduleId: 'akilli-bileklik',
       entityType: 'daily_metrics',
-      title: `${date} Sağlık ve Aktivite Özeti`,
+      title: `${date} Sağlık ve Aktivite Ölçümü`,
       subtitle: `${steps} adım · ${sleepHours} saat uyku`,
       category: 'Bileklik Verileri',
       tags: ['sağlık', 'aktivite', 'bileklik'],
@@ -72,18 +67,21 @@ export function AkilliBileklikModule() {
       isDemo: false,
       payload: {
         kind: 'daily_metrics',
-        steps: Number(steps) || 0,
-        heartRateAvg: Number(heartRate) || 70,
-        sleepHours: Number(sleepHours) || 7,
-        calories: Number(calories) || 2000,
+        steps: Math.max(0, Number(steps) || 0),
+        heartRateAvg: Math.max(0, Number(heartRate) || 0),
+        sleepHours: Math.max(0, Number(sleepHours) || 0),
+        calories: Math.max(0, Number(calories) || 0),
         stressLevel: stress,
         notes: notes.trim(),
       },
     });
-    setSteps('8000');
+    setSteps('0');
+    setHeartRate('0');
+    setSleepHours('0');
+    setCalories('0');
     setNotes('');
     setShowNew(false);
-    notify('Sağlık ve bileklik verisi kaydedildi.');
+    notify('Sağlık ve bileklik ölçümü kaydedildi.');
   };
 
   const handleCsvImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,12 +93,14 @@ export function AkilliBileklikModule() {
       let count = 0;
       for (let i = 1; i < lines.length; i++) {
         const cols = lines[i].split(',').map((c) => c.trim().replace(/^"|"$/g, ''));
-        if (cols.length >= 4) {
+        if (cols.length >= 2) {
+          const parsedSteps = Number(cols[1]);
+          if (Number.isNaN(parsedSteps)) continue;
           await addModuleRecord<SmartBandPayload>({
             moduleId: 'akilli-bileklik',
             entityType: 'daily_metrics',
-            title: `${cols[0] || localDateIso()} İçe Aktarılan Ölçüm`,
-            subtitle: `${cols[1] || '0'} adım`,
+            title: `${cols[0] || localDateIso()} CSV Ölçümü`,
+            subtitle: `${parsedSteps} adım`,
             category: 'CSV İçe Aktarım',
             tags: ['aktarim', 'saglik'],
             isFavorite: false,
@@ -110,10 +110,10 @@ export function AkilliBileklikModule() {
             isDemo: false,
             payload: {
               kind: 'daily_metrics',
-              steps: Number(cols[1]) || 5000,
-              heartRateAvg: Number(cols[2]) || 72,
-              sleepHours: Number(cols[3]) || 7,
-              calories: 2000,
+              steps: parsedSteps,
+              heartRateAvg: Number(cols[2]) || 0,
+              sleepHours: Number(cols[3]) || 0,
+              calories: Number(cols[4]) || 0,
               stressLevel: 'Normal',
               notes: 'CSV dosyasından içe aktarıldı.',
             },
@@ -121,9 +121,9 @@ export function AkilliBileklikModule() {
           count++;
         }
       }
-      notify(`${count} sağlık kaydı CSV dosyasından içe aktarıldı.`);
+      notify(`${count} geçerli sağlık kaydı CSV dosyasından içe aktarıldı.`);
     } catch {
-      notify('CSV dosyası okunamadı.');
+      notify('CSV dosyası okunamadı veya biçim geçersiz.');
     }
     e.target.value = '';
   };
@@ -155,7 +155,7 @@ export function AkilliBileklikModule() {
             Akıllı Bileklik &amp; Sağlık Asistanı
           </h1>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] mt-0.5">
-            Adım, nabız, uyku ve kalori ölçümleri. Donanım senkronizasyonu için mobil eşlik uygulaması veya Web Bluetooth API gerektirir.
+            Adım, nabız, uyku ve kalori ölçümleri. Veri bulunmadığında varsayılan sahte istatistik gösterilmez.
           </p>
         </div>
 
@@ -195,14 +195,14 @@ export function AkilliBileklikModule() {
       <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-start gap-3 text-xs">
         <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
         <div>
-          <span className="font-semibold text-amber-700 dark:text-amber-300">Donanım ve Bluetooth Eşleşme Bilgisi:</span>
+          <span className="font-semibold text-amber-700 dark:text-amber-300">Donanım ve Bağlantı Durumu:</span>
           <p className="text-amber-600/90 dark:text-amber-400/90 mt-0.5">
-            Web tarayıcı güvenlik kısıtlamaları nedeniyle doğrudan arka plan bileklik eşleşmesi için akıllı telefonunuzdaki mobil eşlik uygulaması veya Web Bluetooth destekli tarayıcı oturumu gereklidir. Bu modül üzerinden ölçümlerinizi manuel olarak girebilir veya CSV ile toplu aktarabilirsiniz.
+            Harici akıllı bileklik cihazı veya Bluetooth eşleşmesi yapılmadığı sürece durum <strong>Bağlı Değil</strong> olarak kalır; sahte veri üretilmez. Ölçümlerinizi manuel olarak girebilirsiniz.
           </p>
         </div>
       </div>
 
-      {/* Overview Cards */}
+      {/* Overview Cards (Real or No Data) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="p-5 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-2">
           <div className="flex items-center justify-between text-xs text-[#546070] dark:text-[#9BA7B6]">
@@ -210,9 +210,11 @@ export function AkilliBileklikModule() {
             <Footprints className="w-4 h-4 text-[#8C6B32]" />
           </div>
           <div className="text-2xl font-serif font-semibold tabular-nums">
-            {latest?.steps ?? 8420}
+            {latest ? latest.steps : 'Veri bulunmuyor'}
           </div>
-          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">Hedef: 10,000 adım (%84)</p>
+          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">
+            {latest ? 'Son ölçüm kaydı' : 'Ölçüm girilmedi'}
+          </p>
         </div>
 
         <div className="p-5 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-2">
@@ -221,9 +223,11 @@ export function AkilliBileklikModule() {
             <Heart className="w-4 h-4 text-red-500" />
           </div>
           <div className="text-2xl font-serif font-semibold tabular-nums">
-            {latest?.heartRateAvg ?? 72} <span className="text-xs font-normal">bpm</span>
+            {latest && latest.heartRateAvg > 0 ? `${latest.heartRateAvg} bpm` : 'Veri bulunmuyor'}
           </div>
-          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">Dinlenik nabız normal aralıkta</p>
+          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">
+            {latest ? 'Nabız ölçümü' : 'Ölçüm girilmedi'}
+          </p>
         </div>
 
         <div className="p-5 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-2">
@@ -232,9 +236,11 @@ export function AkilliBileklikModule() {
             <Moon className="w-4 h-4 text-indigo-400" />
           </div>
           <div className="text-2xl font-serif font-semibold tabular-nums">
-            {latest?.sleepHours ?? 7.5} <span className="text-xs font-normal">saat</span>
+            {latest && latest.sleepHours > 0 ? `${latest.sleepHours} saat` : 'Veri bulunmuyor'}
           </div>
-          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">Kalite: İyi (Derin uyku %32)</p>
+          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">
+            {latest ? 'Uyku kaydı' : 'Ölçüm girilmedi'}
+          </p>
         </div>
 
         <div className="p-5 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-2">
@@ -243,9 +249,11 @@ export function AkilliBileklikModule() {
             <Flame className="w-4 h-4 text-orange-400" />
           </div>
           <div className="text-2xl font-serif font-semibold tabular-nums">
-            {latest?.calories ?? 2150} <span className="text-xs font-normal">kcal</span>
+            {latest && latest.calories > 0 ? `${latest.calories} kcal` : 'Veri bulunmuyor'}
           </div>
-          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">Aktif kalori: 640 kcal</p>
+          <p className="text-[11px] text-[#546070] dark:text-[#9BA7B6]">
+            {latest ? 'Kalori kaydı' : 'Ölçüm girilmedi'}
+          </p>
         </div>
       </div>
 
@@ -267,6 +275,7 @@ export function AkilliBileklikModule() {
               <label className="block text-xs text-[#546070] dark:text-[#9BA7B6] mb-1">Adım Sayısı</label>
               <input
                 type="number"
+                min={0}
                 value={steps}
                 onChange={(e) => setSteps(e.target.value)}
                 className="w-full h-9 px-3 text-xs rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] border border-black/10 dark:border-white/10 tabular-nums"
@@ -276,6 +285,7 @@ export function AkilliBileklikModule() {
               <label className="block text-xs text-[#546070] dark:text-[#9BA7B6] mb-1">Ort. Nabız (bpm)</label>
               <input
                 type="number"
+                min={0}
                 value={heartRate}
                 onChange={(e) => setHeartRate(e.target.value)}
                 className="w-full h-9 px-3 text-xs rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] border border-black/10 dark:border-white/10 tabular-nums"
@@ -285,6 +295,7 @@ export function AkilliBileklikModule() {
               <label className="block text-xs text-[#546070] dark:text-[#9BA7B6] mb-1">Uyku (Saat)</label>
               <input
                 type="number"
+                min={0}
                 step="0.1"
                 value={sleepHours}
                 onChange={(e) => setSleepHours(e.target.value)}
@@ -297,6 +308,7 @@ export function AkilliBileklikModule() {
               <label className="block text-xs text-[#546070] dark:text-[#9BA7B6] mb-1">Kalori (kcal)</label>
               <input
                 type="number"
+                min={0}
                 value={calories}
                 onChange={(e) => setCalories(e.target.value)}
                 className="w-full h-9 px-3 text-xs rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] border border-black/10 dark:border-white/10 tabular-nums"
@@ -321,7 +333,7 @@ export function AkilliBileklikModule() {
               type="text"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Örn: Sabah koşusu yapıldı, uyku kalitesi iyi."
+              placeholder="Örn: Sabah yürüyüşü yapıldı."
               className="w-full h-9 px-3 text-xs rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] border border-black/10 dark:border-white/10"
             />
           </div>
@@ -373,7 +385,17 @@ export function AkilliBileklikModule() {
                   title="Kaydı sil"
                 >
                   <Trash2 className="w-4 h-4" />
-                </button>
+                </button><button
+                  type="button"
+                  onClick={async () => {
+                    // Quick update test
+                    const newSteps = prompt('Yeni adım sayısı:', String(r.payload.steps));
+                    if (newSteps !== null) {
+                      // Handled by store if needed or delete/recreate
+                    }
+                  }}
+                  className="hidden"
+                />
               </div>
             ))}
           </div>

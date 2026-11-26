@@ -59,6 +59,23 @@ const MAX_CONTEXT_CHARS = 8000;
 const MAX_MODULE_CHARS = 200;
 const MAX_HISTORY_ITEM_CHARS = 1500;
 
+const ipRequestCounts = new Map<string, { count: number; resetAt: number }>();
+app.use('/api/ai/assist', (req, res, next) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  let record = ipRequestCounts.get(ip);
+  if (!record || now > record.resetAt) {
+    record = { count: 0, resetAt: now + 60000 };
+    ipRequestCounts.set(ip, record);
+  }
+  record.count++;
+  if (record.count > 15) {
+    res.status(429).json({ error: 'Çok fazla istek gönderildi. Lütfen 1 dakika bekleyin.' });
+    return;
+  }
+  next();
+});
+
 app.post('/api/ai/assist', async (req, res) => {
   const body = (req.body && typeof req.body === 'object' ? req.body : {}) as AssistRequestBody;
   const prompt = typeof body.prompt === 'string' ? body.prompt.trim() : '';
@@ -129,7 +146,7 @@ app.post('/api/ai/assist', async (req, res) => {
       : prompt;
 
     const response = await ai.models.generateContent({
-      model: 'gemini-4-hydrogen',
+      model: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
       contents: fullContents,
       config: {
         systemInstruction,
