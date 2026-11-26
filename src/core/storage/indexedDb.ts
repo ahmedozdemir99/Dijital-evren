@@ -49,7 +49,14 @@ export function openDatabase(): Promise<IDBDatabase> {
     };
 
     request.onsuccess = () => {
-      resolve(request.result);
+      const db = request.result;
+      db.onversionchange = () => { db.close(); dbPromise = null; };
+      resolve(db);
+    };
+
+    request.onblocked = () => {
+      dbPromise = null;
+      reject(new Error('Veri tabanı güncellemesi engellendi. Diğer Dijital Evrenim sekmelerini kapatıp yeniden açın.'));
     };
 
     request.onerror = () => {
