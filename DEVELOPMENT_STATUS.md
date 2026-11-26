@@ -1,7 +1,7 @@
 # Dijital Evrenim — Geliştirme ve Entegrasyon Durumu
 
 > **Slogan:** Bilgiden düşünceye, düşünceden hayata.
-> **Mimari:** **1–3–6–24** (1 Bütünleşik Uygulama, 3 Ana Alan, 6 Tematik Merkez, 24 İşlevsel Modül), IndexedDB (Şema v3) Yerel Kalıcı Veri Katmanı, PWA Çevrimdışı Desteği ve İsteğe Bağlı Sunucu Tabanlı Gemini AI Servisi.
+> **Mimari:** **1–3–6–23** (1 Bütünleşik Uygulama, 3 Ana Alan, 6 Tematik Merkez, 23 İşlevsel Modül), IndexedDB (Şema v3) Yerel Kalıcı Veri Katmanı, PWA Çevrimdışı Desteği ve İsteğe Bağlı Sunucu Tabanlı Gemini AI Servisi.
 
 ---
 
@@ -17,7 +17,7 @@
 
 ---
 
-## 2. Nihai 1–3–6–24 Hiyerarşisi (3 Ana Alan · 6 Merkez · 24 Modül)
+## 2. Nihai 1–3–6–23 Hiyerarşisi (3 Ana Alan · 6 Merkez · 23 Modül)
 
 ### I. ZİHİN — Bilmek ve düşünmek (12/12 Tamamlandı)
 
@@ -59,7 +59,6 @@
 21. **Bizbize Riders** (`/modul/bizbize-riders`) — Motosiklet garajı, sürüş ve bakım günlüğü, Karadeniz Asistanı rota ve Tekâmül Yolunda tefekkür aktarımı.
 22. **Karadeniz Asistanı** (`/modul/karadeniz-asistani`) — Şematik kıyı haritası, durak ve mutfak rehberi, Bizbize Riders ve Bugün Ne Yesem aktarımları.
 23. **Bugün Ne Yesem** (`/modul/bugun-ne-yesem`) — Tarif arşivi, eldeki malzemeye göre eşleştirme, haftalık plan ve otomatik alışveriş listesi.
-24. **Akıllı Bileklik** (`/modul/akilli-bileklik`) — `saglik` gizlilik alanı, manuel giriş ve CSV içe aktarma (donanım sensörü bağlı değildir; dürüst biçimde `Bağlı Değil` gösterilir).
 
 ---
 
@@ -73,6 +72,8 @@
 
 ## 4. Harici Bağlantı ve Yapılandırma Gerektiren Alanlar
 
-- **Sunucu Yapay Zekâ Anahtarı (`GEMINI_API_KEY`)**: Evren Asistanı ve Felsefe Meclisi Sokratik sorgulaması için sunucu ortamında tanımlanmalıdır. Tanımlı olmadığında temel 24 modül eksiksiz çalışmaya devam eder.
-- **12 Aktif Harici Uygulama (`/entegrasyonlar`)**: GitHub/canlı URL, API uç noktası, alan eşleme ve gerçek zamanlı bağlantı testi altyapısı hazırdır.
-- **Akıllı Bileklik Donanımı**: Doğrudan Web Bluetooth bağlantısı olmadan manuel kayıt ve CSV/JSON içe aktarma ile çalışır.
+- **Sunucu Yapay Zekâ Anahtarı (`GEMINI_API_KEY`)**: Evren Asistanı ve Felsefe Meclisi Sokratik sorgulaması için sunucu ortamında tanımlanmalıdır. Tanımlı olmadığında temel 23 modül eksiksiz çalışmaya devam eder.
+- **11 Aktif Harici Uygulama (`/entegrasyonlar`)**: GitHub/canlı URL, API uç noktası, alan eşleme ve gerçek zamanlı bağlantı testi altyapısı hazırdır.
+
+
+Not: Akıllı Bileklik kapsam dışıdır; 23 modüllü sürüm için test ve derleme yeniden doğrulanmalıdır.
