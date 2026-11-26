@@ -1,6 +1,6 @@
-# Security & Architecture Summary (`1–3–6–24`)
+# Security & Architecture Summary (`1–3–6–23`)
 
-Dijital Evrenim is a local-first web application backed by IndexedDB (`schemaVersion: 3`) with an optional Express proxy for Gemini AI assistance. Following the **1–3–6–24** architectural update (3 Main Domains, 6 Thematic Centers, 24 Functional Modules), all security safeguards, non-destructive schema migrations, and cross-module data flows were re-verified.
+Dijital Evrenim is a local-first web application backed by IndexedDB (`schemaVersion: 3`) with an optional Express proxy for Gemini AI assistance. Following the **1–3–6–23** architectural update (3 Main Domains, 6 Thematic Centers, 23 Functional Modules), all security safeguards, non-destructive schema migrations, and cross-module data flows were re-verified.
 
 ## Key Safeguards Verified
 
@@ -26,6 +26,9 @@ Dijital Evrenim is a local-first web application backed by IndexedDB (`schemaVer
 
 | Verification Check | Command / Tool | Result | Coverage |
 | :--- | :--- | :--- | :--- |
-| Automated Unit & Architecture Tests | `npx tsx --test src/core/__tests__/core.test.ts` | **11 / 11 passed** | `1–3–6–24` registry counts (3 domains, 6 centers, 24 modules, 12 external apps), retired-module exclusion in search & calendar, `isSafeHttpUrl`, `isSafeDataUrl`, math expression validation, solar time formatting, CSV parsing, Turkish prosody, truth tables. |
+| Automated Unit & Architecture Tests | `npx tsx --test src/core/__tests__/core.test.ts` | **11 / 11 passed** | `1–3–6–23` registry counts (3 domains, 6 centers, 23 modules, 11 external apps), retired-module exclusion in search & calendar, `isSafeHttpUrl`, `isSafeDataUrl`, math expression validation, solar time formatting, CSV parsing, Turkish prosody, truth tables. |
 | TypeScript Typecheck | `npm run lint` (`tsc --noEmit`) | **Passed (0 errors)** | Full client, core repository/services, store, and server TypeScript types. |
 | Production Bundle Build | `npm run build` | **Succeeded** | Complete Vite production build across all routes and modules. |
+
+
+Not: Akıllı Bileklik kapsam dışıdır; 23 modüllü sürüm için test ve derleme yeniden doğrulanmalıdır.
