@@ -1,13 +1,13 @@
 # Dijital Evrenim — Nihai Denetim ve Mimari Güncelleme Raporu (`FINAL_AUDIT.md`)
 
 **Tarih:** 2026-11-26  
-**Kapsam:** **1–3–6–24** Nihai Mimarisi (1 Bütünleşik Ana Uygulama, 3 Ana Alan, 6 Tematik Merkez, 24 İşlevsel Modül), Ortak Çekirdek Servisler, IndexedDB v3 Katmanı, Sunucu API Katmanı (`server.ts`), Entegrasyonlar, PWA Yapısı ve Güvenlik Kontrolleri
+**Kapsam:** **1–3–6–23** Nihai Mimarisi (1 Bütünleşik Ana Uygulama, 3 Ana Alan, 6 Tematik Merkez, 23 İşlevsel Modül), Ortak Çekirdek Servisler, IndexedDB v3 Katmanı, Sunucu API Katmanı (`server.ts`), Entegrasyonlar, PWA Yapısı ve Güvenlik Kontrolleri
 
 ---
 
-## 1. Nihai Mimari Dönüşüm (1–3–6–24) ve Doğrulanan Düzeltmeler
+## 1. Nihai Mimari Dönüşüm (1–3–6–23) ve Doğrulanan Düzeltmeler
 
-1. **Kesin 1–3–6–24 Hiyerarşisi ve Kademeli Gezinme (`Domain -> Center -> Module`):**
+1. **Kesin 1–3–6–23 Hiyerarşisi ve Kademeli Gezinme (`Domain -> Center -> Module`):**
    - **Ana Kontrol Paneli (`/`):** `domains_overview` bileşeni yalnızca 3 Ana Alanı (`I. ZİHİN`, `II. KEŞİF`, `III. YAŞAM`) gösterir ve `/alan/:domainId` sayfasına yönlendirir.
    - **Kenar Menüsü ve Dizin (`AppShell.tsx`, `DomainDetailPage.tsx`, `CenterDetailPage.tsx`, `ModulesDirectoryPage.tsx`):** 6 tematik merkez 3 ana alan altında gruplanmıştır; modül dizini alan + merkez + durum süzgeçlerini destekler.
 
@@ -19,7 +19,7 @@
 3. **Kapsam Dışı Modüller ve Tahribatsız Migrasyon (`IndexedDB v3`):**
    - `bilge` merkezi ile `hatiralarim`, `soy-agacim`, `zeka-pro-ligi`, `bilge-akademi`, `deneme-analiz` modülleri aktif kapsamdan çıkarıldı.
    - `ecosystemRepository.ts` içindeki `v2 -> v3` geçişi, kapsam dışı modüllere ait kullanıcı kayıtlarını silmeden korur; `Ayarlar` sayfasından `legacy_archive` kapsamında JSON olarak dışa aktarılabilir durumda tutar.
-   - `searchEcosystem`, `buildCalendarEvents` ve `IntegrationsPage` yalnızca aktif 24 modülü kapsar.
+   - `searchEcosystem`, `buildCalendarEvents` ve `IntegrationsPage` yalnızca aktif 23 modülü kapsar.
 
 4. **Güvenlik, Doğrulama ve Çekirdek Bütünlük (Korunan Kontroller):**
    - `isSafeHttpUrl` (`http:` / `https:`) ve `isSafeDataUrl` (güvenli base64 görsel/PDF/metin/ses, aktif içerik engelli) doğrulamaları korunur.
@@ -28,7 +28,7 @@
 
 ---
 
-## 2. 3 Ana Alan · 6 Merkez · 24 Modül Durum Tablosu
+## 2. 3 Ana Alan · 6 Merkez · 23 Modül Durum Tablosu
 
 ### I. ZİHİN — Bilmek ve düşünmek (12 Modül)
 
@@ -67,7 +67,7 @@
 | AutoMusicPro | `automusicpro` | `genel` | Tamamlandı (Yerel) | Web Audio API 16 adımlı ritim/melodi sekansörü, Şiir Deryası ve Matematik Laboratuvarı aktarımı |
 | Kendi Dünyam | `kendi-dunyam` | `kisisel` | Tamamlandı (Yerel) | Kurgusal dünya haritası, medeniyet/dil/karakter oluşturma, kurgu sınır etiketi |
 
-### III. YAŞAM — Yaşamak ve gelişmek (7 Modül)
+### III. YAŞAM — Yaşamak ve gelişmek (6 Modül)
 
 #### 5. TEKÂMÜL — Maneviyat ve gelişim (3 Modül)
 | Modül | ID | Gizlilik | Durum | Doğrulanan İşlevler |
@@ -76,21 +76,20 @@
 | Mihrap ve Minber | `mihrap-ve-minber` | `ibadet` | Tamamlandı (Yerel) | Kaynakçalı ayet/hadis/hutbe arşivi, doğrulama etiketi, Alıntı Defterim aktarımı |
 | Namaz Yolculuğum | `namaz-yolculugum` | `ibadet` | Kısmen Harici Bağlı (Yerel Tam) | Günlük vakit takibi, `ibadet` gizlilik yalıtımı, yaklaşık astronomik referans vakit hesaplayıcı |
 
-#### 6. HAYAT — Günlük yaşam ve hobiler (4 Modül)
+#### 6. HAYAT — Günlük yaşam ve hobiler (3 Modül)
 | Modül | ID | Gizlilik | Durum | Doğrulanan İşlevler |
 | :--- | :--- | :--- | :--- | :--- |
 | Bizbize Riders | `bizbize-riders` | `genel` | Tamamlandı (Yerel) | Motosiklet profili, sürüş ve bakım günlüğü, Karadeniz Asistanı rota ve Tekâmül Yolunda tefekkür aktarımı |
 | Karadeniz Asistanı | `karadeniz-asistani` | `genel` | Tamamlandı (Yerel) | Bölgesel gezi rehberi, interaktif harita, Bizbize Riders ve Bugün Ne Yesem aktarımları |
 | Bugün Ne Yesem | `bugun-ne-yesem` | `genel` | Tamamlandı (Yerel) | Tarif arşivi, malzeme eşleştirme, haftalık menü ve alışveriş listesi |
-| Akıllı Bileklik | `akilli-bileklik` | `saglik` | Kısmen Harici Bağlı (Yerel Tam) | Manuel ve CSV aktivite/uyku kaydı, grafikler, `saglik` gizlilik yalıtımı (canlı donanım bağlantısı yoktur) |
 
 ---
 
 ## 3. Gerçek Bağlantı / Yapılandırma Gerektiren Harici Servisler
 
 1. **Gemini Yapay Zekâ Asistanı (`/api/ai/assist`):** Sunucu ortamında `GEMINI_API_KEY` gerektirir; tanımlanmadığında HTTP 503 bilgilendirmesi döner, yerel modüller çalışmaya devam eder.
-2. **12 Aktif Harici Uygulama Bağlantısı (`/entegrasyonlar`):** URL/API yapılandırılmadıkça `Bağlı Değil` veya `İçe Aktarmaya Hazır` durumunda kalır.
-3. **Akıllı Bileklik Donanımı & Resmî Namaz Vakitleri API’si:** Donanım sensörleri yerine CSV/manuel giriş; resmî vakit API’si yerine güneş açısı referans tahmini kullanılır.
+2. **11 Aktif Harici Uygulama Bağlantısı (`/entegrasyonlar`):** URL/API yapılandırılmadıkça `Bağlı Değil` veya `İçe Aktarmaya Hazır` durumunda kalır.
+3. **Resmî Namaz Vakitleri API’si:** Resmî vakit API’si yerine güneş açısı referans tahmini kullanılır.
 
 ---
 
@@ -101,3 +100,6 @@
 | Çekirdek ve Mimari Birim Testleri | `npx tsx --test src/core/__tests__/core.test.ts` | **11 / 11 test geçti** (`0` başarısız) |
 | TypeScript Tip ve Sözdizimi Denetimi | `npm run lint` (`tsc --noEmit`) | **Başarılı** (`0` hata) |
 | Üretim Derlemesi (Vite) | `npm run build` | **Başarılı** |
+
+
+Not: Akıllı Bileklik kapsam dışıdır; 23 modüllü sürüm için test ve derleme yeniden doğrulanmalıdır.
