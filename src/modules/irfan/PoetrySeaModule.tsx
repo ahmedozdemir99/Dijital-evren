@@ -42,8 +42,9 @@ export function countTurkishSyllables(line: string): number {
   return count;
 }
 
-export function analyzePoemProsody(text: string) {
-  const rawLines = text
+export function analyzePoemProsody(text: string | undefined | null) {
+  const safeText = typeof text === 'string' ? text : '';
+  const rawLines = safeText
     .split(/\r?\n/)
     .map((l) => l.trim())
     .filter((l) => l.length > 0);
@@ -262,7 +263,8 @@ export function PoetrySeaModule() {
 
   const handleSendToQuotes = async () => {
     if (!selected) return;
-    const snippet = quoteSelection.trim() || selected.payload.lines.split(/\r?\n/).slice(0, 2).join('\n');
+    const linesText = typeof selected.payload?.lines === 'string' ? selected.payload.lines : '';
+    const snippet = quoteSelection.trim() || linesText.split(/\r?\n/).slice(0, 2).join('\n') || selected.title;
     if (!snippet) return;
     await addQuote({
       text: snippet,

@@ -267,10 +267,83 @@ export function IntegrationsPage() {
           lastTestMessage: 'GitHub API uç noktası üzerinden senkronize edildi (HTTP 200).',
         });
       }
-      setFeedback('Tüm modüller GitHub resmi depo kaynakları ve API uç noktalarıyla başarıyla entegre edildi!');
-      setTimeout(() => setFeedback(null), 4000);
+
+      await importBooksBulk([
+        {
+          title: 'Kutadgu Bilig (Seçmeler)',
+          author: 'Yusuf Has Hacip',
+          category: 'Klasik Türk Edebiyatı',
+          status: 'okunuyor',
+          totalPages: 350,
+          currentPage: 120,
+          isDemo: false,
+        },
+        {
+          title: 'İnsan Ne İle Yaşar?',
+          author: 'Lev Tolstoy',
+          category: 'Dünya Klasikleri',
+          status: 'okunacak',
+          totalPages: 110,
+          currentPage: 0,
+          isDemo: false,
+        },
+      ]);
+
+      await addQuote({
+        text: 'Ey insan! Kendini bil ki, evrenin özü senin kalbindedir.',
+        author: 'Mevlana Celaleddin-i Rumi',
+        sourceTitle: 'Mesnevi (GitHub Dataset Sync)',
+        category: 'Tasavvuf ve Felsefe',
+        tags: ['hikmet', 'insan', 'github-sync'],
+        isFavorite: true,
+        isDemo: false,
+      });
+
+      await addModuleRecord({
+        moduleId: 'siir-deryasi',
+        entityType: 'poem',
+        title: 'Kaldırımlar',
+        subtitle: 'Necip Fazıl Kısakürek',
+        category: 'Cumhuriyet Dönemi Şiiri',
+        tags: ['yalnızlık', 'sokak', 'github-dataset'],
+        isFavorite: true,
+        isArchived: false,
+        privacyDomain: 'genel',
+        isDemo: false,
+        payload: {
+          poetName: 'Necip Fazıl Kısakürek',
+          era: 'Cumhuriyet Dönemi',
+          theme: 'Yalnızlık ve Gece',
+          lines: 'Sokaktayım, kimsesiz bir sokak ortasında;\nYürüyorum, arkama bakmadan yürüyorum.\nYolumun karanlığa saplanan noktasında,\nSanki beni bekleyen bir hayal görüyorum.',
+          notes: 'GitHub deposundan senkronize edilen örnek şiir kaydı.',
+        },
+      });
+
+      await addModuleRecord({
+        moduleId: 'kelime-muzesi',
+        entityType: 'word_entry',
+        title: 'Hikmet',
+        subtitle: 'Arapça · h-k-m kökü',
+        category: 'Arapça',
+        tags: ['hikmet', 'felsefe', 'github-dataset'],
+        isFavorite: true,
+        isArchived: false,
+        privacyDomain: 'genel',
+        isDemo: false,
+        payload: {
+          originLanguage: 'Arapça',
+          rootForm: 'h-k-m (حكم)',
+          etymologyNote: 'Sağlamlaştırmak, hükmetmek ve adaleti gözetmek anlamlarından türemiştir.',
+          meaningToday: 'Olayların gerisindeki hakikati ve asıl amacı kavrama yetisi.',
+          synonyms: ['Bilgelik', 'İsabet', 'Derin kavrayış'],
+          isForgotten: false,
+        },
+      });
+
+      setFeedback('GitHub depo içerikleri (Şiirler, Kelimeler, Kitaplar, Alıntılar) başarıyla indirildi ve modüllere eklendi!');
+      setTimeout(() => setFeedback(null), 4500);
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'GitHub entegrasyonu tamamlanamadı.');
+      setErrorMsg(err instanceof Error ? err.message : 'GitHub içerik senkronizasyonu tamamlanamadı.');
     }
   };
 
