@@ -43,13 +43,13 @@ test('1-3-6-23 architecture: 3 domains, 6 centers, 23 unique active modules', ()
   assert.equal(getCentersByDomain('yasam').length, 2);
   assert.equal(getModulesByDomain('zihin').length, 12);
   assert.equal(getModulesByDomain('kesif').length, 5);
-  assert.equal(getModulesByDomain('yasam').length, 7);
+  assert.equal(getModulesByDomain('yasam').length, 6);
   assert.equal(getModulesByCenter('irfan').length, 6);
   assert.equal(getModulesByCenter('idrak').length, 6);
   assert.equal(getModulesByCenter('kozmos').length, 3);
   assert.equal(getModulesByCenter('atolye').length, 2);
   assert.equal(getModulesByCenter('tekamul').length, 3);
-  assert.equal(getModulesByCenter('hayat').length, 4);
+  assert.equal(getModulesByCenter('hayat').length, 3);
 
   // Removed modules and merged tarih-simulatoru must not appear in active registry or feedsInto
   const retiredSet = new Set<string>([...LEGACY_REMOVED_MODULE_IDS, 'tarih-simulatoru']);
