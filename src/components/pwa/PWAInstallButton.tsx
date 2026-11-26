@@ -76,7 +76,7 @@ export function PWAInstallButton() {
     );
   }
 
-  if (isIOS) {
+  {
     return (
       <>
         <button
@@ -90,11 +90,11 @@ export function PWAInstallButton() {
         {showIOSGuide && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
             <div className="w-full max-w-sm rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 p-6 space-y-3">
-              <h3 className="text-lg font-semibold">iOS Kurulum Rehberi</h3>
+              <h3 className="text-lg font-semibold">Uygulama Kurulum Rehberi</h3>
               <p className="text-sm text-[#546070] dark:text-[#9BA7B6]">
-                1. Safari araç çubuğundaki <strong>Paylaş</strong> simgesine dokunun.
+                {isIOS ? 'Safari araç çubuğundaki Paylaş simgesine dokunun.' : 'Tarayıcınızın menüsünü açın.'}
                 <br />
-                2. Aşağı kaydırıp <strong>Ana Ekrana Ekle</strong> seçeneğini seçin.
+                {isIOS ? 'Ana Ekrana Ekle seçeneğini seçin.' : 'Uygulamayı yükle veya Ana ekrana ekle seçeneğini seçin. Desteklenmiyorsa Chrome veya Edge kullanın.'}
               </p>
               <button
                 type="button"
@@ -110,7 +110,6 @@ export function PWAInstallButton() {
     );
   }
 
-  return null;
 }
 
 export function OfflineIndicator() {
