@@ -39,7 +39,19 @@ export function ScienceMuseumModule() {
     () =>
       moduleRecords.filter(
         (r) => r.moduleId === 'bilim-muzesi' && !r.isArchived && (showDemo || !r.isDemo)
-      ) as Array<ModuleRecord<SciencePayload>>,
+      ).map((record) => {
+        const payload = record.payload as Partial<SciencePayload> & { inventor?: string; discovery?: string };
+        return {
+          ...record,
+          payload: {
+            ...payload,
+            discipline: payload.discipline ?? 'Fizik',
+            scientist: payload.scientist ?? payload.inventor ?? 'Bilinmiyor',
+            year: payload.year ?? (record.id === 'demo-science-1' ? 1021 : 0),
+            summary: payload.summary ?? payload.discovery ?? '',
+          },
+        } as ModuleRecord<SciencePayload>;
+      }),
     [moduleRecords, showDemo]
   );
 
