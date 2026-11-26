@@ -28,13 +28,13 @@ import { evaluateMathExpression } from '../../modules/kozmos/MathLabModule.tsx';
 import { computeSolarReferenceTimes } from '../../modules/tekamul/PrayerJourneyModule.tsx';
 import type { Book, KnowledgeNode, ModuleRecord, Quote } from '../types/entities.ts';
 
-test('1-3-6-24 architecture: 3 domains, 6 centers, 24 unique active modules', () => {
+test('1-3-6-23 architecture: 3 domains, 6 centers, 23 unique active modules', () => {
   assert.equal(DOMAINS.length, 3);
   assert.equal(CENTERS.length, 6);
-  assert.equal(MODULES.length, 24);
+  assert.equal(MODULES.length, 23);
   const ids = new Set(MODULES.map((m) => m.id));
-  assert.equal(ids.size, 24);
-  assert.equal(EXISTING_APPS_LIST.length, 12);
+  assert.equal(ids.size, 23);
+  assert.equal(EXISTING_APPS_LIST.length, 11);
   assert.ok(MODULES.every((m) => m.status === 'active'));
 
   // Exact domain & center counts
