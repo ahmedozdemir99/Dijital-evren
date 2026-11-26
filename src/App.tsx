@@ -93,10 +93,10 @@ const ScienceMuseumModule = lazy(() =>
 
 // II. KEŞİF -> Atölye (2 Modül)
 const AutoMusicProModule = lazy(() =>
-  import('./modules/kozmos/AutoMusicProModule').then((m) => ({ default: m.AutoMusicProModule }))
+  import('./modules/atolye/AutoMusicProModule').then((m) => ({ default: m.AutoMusicProModule }))
 );
 const WorldbuilderModule = lazy(() =>
-  import('./modules/kozmos/WorldbuilderModule').then((m) => ({ default: m.WorldbuilderModule }))
+  import('./modules/atolye/WorldbuilderModule').then((m) => ({ default: m.WorldbuilderModule }))
 );
 
 // Tekâmül (3 Modules)
@@ -110,7 +110,7 @@ const PrayerJourneyModule = lazy(() =>
   import('./modules/tekamul/PrayerJourneyModule').then((m) => ({ default: m.PrayerJourneyModule }))
 );
 
-// Hayat (3 Modules)
+// Hayat (4 Modules)
 const BizbizeRidersModule = lazy(() =>
   import('./modules/hayat/BizbizeRidersModule').then((m) => ({ default: m.BizbizeRidersModule }))
 );
@@ -121,6 +121,9 @@ const KaradenizAssistantModule = lazy(() =>
 );
 const WhatToEatModule = lazy(() =>
   import('./modules/hayat/WhatToEatModule').then((m) => ({ default: m.WhatToEatModule }))
+);
+const AkilliBileklikModule = lazy(() =>
+  import('./modules/hayat/AkilliBileklikModule').then((m) => ({ default: m.AkilliBileklikModule }))
 );
 
 function RouteLoader() {
@@ -251,10 +254,11 @@ export default function App() {
             <Route path="/modul/mihrap-ve-minber" element={wrap('Mihrap ve Minber', <MihrapMinberModule />)} />
             <Route path="/modul/namaz-yolculugum" element={wrap('Namaz Yolculuğum', <PrayerJourneyModule />)} />
 
-            {/* III. YAŞAM -> Hayat (3 Modül) */}
+            {/* III. YAŞAM -> Hayat (4 Modül) */}
             <Route path="/modul/bizbize-riders" element={wrap('Bizbize Riders', <BizbizeRidersModule />)} />
             <Route path="/modul/karadeniz-asistani" element={wrap('Karadeniz Asistanı', <KaradenizAssistantModule />)} />
             <Route path="/modul/bugun-ne-yesem" element={wrap('Bugün Ne Yesem', <WhatToEatModule />)} />
+            <Route path="/modul/akilli-bileklik" element={wrap('Akıllı Bileklik', <AkilliBileklikModule />)} />
 
             <Route path="/modul/:moduleId" element={wrap('Modül', <PlannedModulePage />)} />
             <Route path="*" element={<Navigate to="/" replace />} />

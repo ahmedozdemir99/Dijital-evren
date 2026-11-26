@@ -437,9 +437,37 @@ export const MODULES: ModuleDefinition[] = [
     hasExistingApp: true,
     route: '/modul/bugun-ne-yesem',
   },
+  {
+    id: 'akilli-bileklik',
+    centerId: 'hayat',
+    name: 'Akıllı Bileklik',
+    shortDescription: 'Adım, nabız, uyku ve kalori ölçümleri; sağlık takibi, manuel giriş ve CSV içe aktarma.',
+    status: 'active',
+    stage: 7,
+    privacyDomain: 'saglik',
+    isDataOwner: 'Sağlık ve aktivite ölçümleri',
+    feedsInto: ['tekamul-yolunda'],
+    plannedFeatures: ['Bluetooth / Mobil eşlik uygulaması veri senkronizasyonu', 'Sağlık istatistikleri ve CSV dışa/içe aktarım'],
+    hasExistingApp: true,
+    route: '/modul/akilli-bileklik',
+  },
 ];
 
 export const EXISTING_APPS_LIST: ExternalAppConfig[] = [
+  {
+    appId: 'akilli-bileklik',
+    name: 'Akıllı Bileklik',
+    centerId: 'hayat',
+    targetModuleId: 'akilli-bileklik',
+    method: 'file_import',
+    endpointOrUrl: '',
+    repoUrl: '',
+    liveUrl: '',
+    apiUrl: '',
+    status: 'ready_for_import',
+    errorHistory: [],
+    notes: 'Sağlık ve adım ölçümleri CSV formatında içe aktarılabilir.',
+  },
   {
     appId: 'dijital-kutuphanem',
     name: 'Dijital Kütüphanem',
