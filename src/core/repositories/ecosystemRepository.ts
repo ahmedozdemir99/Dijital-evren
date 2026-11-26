@@ -909,12 +909,24 @@ export class IndexedDbEcosystemRepository {
         putManyInStore('activity_logs', seed.activityLogs),
         putManyInStore('notifications', seed.notifications),
       ]);
-    } else if (existingRecords.length === 0) {
-      const seed = createDemoSeedData();
-      await Promise.all([
-        putManyInStore('module_records', seed.moduleRecords),
-        putManyInStore('collections', seed.collections),
-      ]);
+    }
+
+    // Apply each curated content release once, without replacing personal records.
+    const contentRelease = 'curated-philosophy-science-v1';
+    if (!(await getOneFromStore('content_migrations', contentRelease))) {
+      if (!isFirstRun) {
+        const ids = new Set(existingRecords.map(record => record.id));
+        const releaseIds = new Set([
+          'demo-phil-sokrates', 'demo-phil-stoacilik', 'demo-phil-ibn-haldun',
+          'demo-phil-kant', 'demo-phil-descartes', 'demo-science-newton',
+          'demo-science-mendeleyev', 'demo-science-mendel', 'demo-science-kepler',
+          'demo-science-turing',
+        ]);
+        const additions = createDemoSeedData().moduleRecords.filter(record =>
+          record.isDemo && releaseIds.has(record.id) && !ids.has(record.id));
+        await putManyInStore('module_records', additions);
+      }
+      await putInStore('content_migrations', { id: contentRelease, appliedAt: new Date().toISOString() });
     }
 
     return this.loadAll();
