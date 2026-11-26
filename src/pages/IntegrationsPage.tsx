@@ -250,100 +250,36 @@ export function IntegrationsPage() {
   const handleGitHubOneClickSync = async () => {
     setErrorMsg(null);
     setFeedback(null);
+    const repos: Record<string, string> = {
+  "dijital-kutuphanem": "https://github.com/ahmedozdemir99/Final-Kutuphanem",
+  "alinti-defterim": "https://github.com/ahmedozdemir99/Al-nt-defterim",
+  "sohbet-arsivi": "https://github.com/ahmedozdemir99/sohbet-arsivi",
+  "siir-deryasi": "https://github.com/ahmedozdemir99/siir-deryasi",
+  "automusicpro": "https://github.com/ahmedozdemir99/automusicprofinal",
+  "tekamul-yolunda": "https://github.com/ahmedozdemir99/Tek-mul-Yolunda",
+  "mihrap-ve-minber": "https://github.com/ahmedozdemir99/Mihrap-ve-mimber",
+  "namaz-yolculugum": "https://github.com/ahmedozdemir99/namaz-yolculugum",
+  "bizbize-riders": "https://github.com/ahmedozdemir99/Bizbize-Riders",
+  "bugun-ne-yesem": "https://github.com/ahmedozdemir99/bugun-ne-yesem",
+  "karadeniz-asistani": "https://github.com/ahmedozdemir99/karadeniz-asistani"
+};
     try {
-      const now = new Date().toISOString();
       for (const app of externalApps) {
-        const repoUrl = `https://github.com/dijital-evrenim/${app.appId}-dataset`;
-        const apiUrl = `https://api.dijital-evrenim.org/v1/modules/${app.appId}/sync`;
+        if (!repos[app.appId]) continue;
+        const fake = (url?: string) => Boolean(url && /dijital-evrenim\.(app|org)|github\.com\/dijital-evrenim\//.test(url));
         await updateExternalApp({
           ...app,
-          method: 'api',
-          status: 'configured',
-          repoUrl,
-          apiUrl,
-          liveUrl: `https://${app.appId}.dijital-evrenim.app`,
-          disabled: false,
-          lastSyncAt: now,
-          lastTestMessage: 'GitHub API uç noktası üzerinden senkronize edildi (HTTP 200).',
+          repoUrl: repos[app.appId],
+          apiUrl: fake(app.apiUrl) ? '' : app.apiUrl,
+          liveUrl: fake(app.liveUrl) ? '' : app.liveUrl,
+          endpointOrUrl: fake(app.endpointOrUrl) ? '' : app.endpointOrUrl,
+          status: app.method === 'file_import' ? 'ready_for_import' : 'not_configured',
+          lastTestMessage: 'Gerçek depo adresi kaydedildi; veri senkronizasyonu henüz yapılmadı.',
         });
       }
-
-      await importBooksBulk([
-        {
-          title: 'Kutadgu Bilig (Seçmeler)',
-          author: 'Yusuf Has Hacip',
-          category: 'Klasik Türk Edebiyatı',
-          status: 'okunuyor',
-          totalPages: 350,
-          currentPage: 120,
-          isDemo: false,
-        },
-        {
-          title: 'İnsan Ne İle Yaşar?',
-          author: 'Lev Tolstoy',
-          category: 'Dünya Klasikleri',
-          status: 'okunacak',
-          totalPages: 110,
-          currentPage: 0,
-          isDemo: false,
-        },
-      ]);
-
-      await addQuote({
-        text: 'Ey insan! Kendini bil ki, evrenin özü senin kalbindedir.',
-        author: 'Mevlana Celaleddin-i Rumi',
-        sourceTitle: 'Mesnevi (GitHub Dataset Sync)',
-        category: 'Tasavvuf ve Felsefe',
-        tags: ['hikmet', 'insan', 'github-sync'],
-        isFavorite: true,
-        isDemo: false,
-      });
-
-      await addModuleRecord({
-        moduleId: 'siir-deryasi',
-        entityType: 'poem',
-        title: 'Kaldırımlar',
-        subtitle: 'Necip Fazıl Kısakürek',
-        category: 'Cumhuriyet Dönemi Şiiri',
-        tags: ['yalnızlık', 'sokak', 'github-dataset'],
-        isFavorite: true,
-        isArchived: false,
-        privacyDomain: 'genel',
-        isDemo: false,
-        payload: {
-          poetName: 'Necip Fazıl Kısakürek',
-          era: 'Cumhuriyet Dönemi',
-          theme: 'Yalnızlık ve Gece',
-          lines: 'Sokaktayım, kimsesiz bir sokak ortasında;\nYürüyorum, arkama bakmadan yürüyorum.\nYolumun karanlığa saplanan noktasında,\nSanki beni bekleyen bir hayal görüyorum.',
-          notes: 'GitHub deposundan senkronize edilen örnek şiir kaydı.',
-        },
-      });
-
-      await addModuleRecord({
-        moduleId: 'kelime-muzesi',
-        entityType: 'word_entry',
-        title: 'Hikmet',
-        subtitle: 'Arapça · h-k-m kökü',
-        category: 'Arapça',
-        tags: ['hikmet', 'felsefe', 'github-dataset'],
-        isFavorite: true,
-        isArchived: false,
-        privacyDomain: 'genel',
-        isDemo: false,
-        payload: {
-          originLanguage: 'Arapça',
-          rootForm: 'h-k-m (حكم)',
-          etymologyNote: 'Sağlamlaştırmak, hükmetmek ve adaleti gözetmek anlamlarından türemiştir.',
-          meaningToday: 'Olayların gerisindeki hakikati ve asıl amacı kavrama yetisi.',
-          synonyms: ['Bilgelik', 'İsabet', 'Derin kavrayış'],
-          isForgotten: false,
-        },
-      });
-
-      setFeedback('GitHub depo içerikleri (Şiirler, Kelimeler, Kitaplar, Alıntılar) başarıyla indirildi ve modüllere eklendi!');
-      setTimeout(() => setFeedback(null), 4500);
+      setFeedback('GitHub depo adresleri kaydedildi. Veri aktarımı için gerçek API veya dışa aktarılmış dosya gerekir.');
     } catch (err) {
-      setErrorMsg(err instanceof Error ? err.message : 'GitHub içerik senkronizasyonu tamamlanamadı.');
+      setErrorMsg(err instanceof Error ? err.message : 'Depo adresleri kaydedilemedi.');
     }
   };
 
@@ -356,7 +292,7 @@ export function IntegrationsPage() {
           </h1>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] mt-1 max-w-3xl">
             Daha önce geliştirilmiş mevcut projeleriniz için bağlantı, alan eşleme, gerçek zamanlı
-            bağlantı testi ve aşamalı veri taşıma yönetim ekranı. Tek tıkla GitHub depo örneklerini entegre edin.
+            bağlantı testi ve aşamalı veri taşıma yönetim ekranı. Gerçek GitHub depo adreslerini tek tıkla kaydedin.
           </p>
         </div>
         <button
@@ -365,7 +301,7 @@ export function IntegrationsPage() {
           className="h-10 inline-flex items-center gap-2 px-4 text-xs font-medium rounded-xl bg-[#8C6B32] dark:bg-[#D6B782] text-white dark:text-[#10151E] hover:opacity-90 shadow-sm whitespace-nowrap shrink-0"
         >
           <Link2 className="w-4 h-4" />
-          <span>GitHub Örneklerini Tek Tıkla Entegre Et</span>
+          <span>GitHub Depolarını Bağla</span>
         </button>
       </div>
 
