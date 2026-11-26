@@ -32,34 +32,14 @@ export class SupabaseSyncAdapter {
 
   public getCloudStatus(): { isConnected: boolean; user: CloudUser | null } {
     return {
-      isConnected: this.isConnectedToCloud,
+      isConnected: false,
       user: this.currentUser,
     };
   }
 
-  public async signIn(email: string): Promise<CloudUser> {
-    if (!this.isConnectedToCloud) {
-      // Offline / Local mode authentication stub
-      this.currentUser = {
-        id: `user-${Date.now()}`,
-        email,
-        fullName: email.split('@')[0],
-        isAuthenticated: true,
-      };
-      return this.currentUser;
-    }
-    // Real Supabase Auth call placeholder
-    try {
-      // const res = await fetch(`${this.supabaseUrl}/auth/v1/token?grant_type=password`, ...)
-      this.currentUser = {
-        id: `sb-user-${Date.now()}`,
-        email,
-        isAuthenticated: true,
-      };
-      return this.currentUser;
-    } catch {
-      throw new Error('Supabase kimlik doğrulama başarısız oldu.');
-    }
+  public async signIn(_email: string): Promise<CloudUser> {
+    this.currentUser = null;
+    throw new Error('Gerçek Supabase kimlik doğrulaması henüz yapılandırılmadı. Yerel kullanım için giriş gerekmez.');
   }
 
   public async signOut(): Promise<void> {
