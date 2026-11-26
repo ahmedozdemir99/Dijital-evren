@@ -1,1 +1,1 @@
-export const onRequestGet = ({ env }: { env: { GEMINI_API_KEY?: string } }) => Response.json({ status: 'ok', app: 'Dijital Evrenim', aiConfigured: Boolean(env.GEMINI_API_KEY) });
+export const onRequestGet = ({ env }: { env: { GEMINI_API_KEY?: string; AI_ACCESS_TOKEN?: string } }) => Response.json({ status: 'ok', app: 'Dijital Evrenim', aiConfigured: Boolean(env.GEMINI_API_KEY && env.AI_ACCESS_TOKEN) });
