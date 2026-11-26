@@ -592,6 +592,10 @@ function createDemoSeedData(): {
       privacyDomain: 'genel',
       isDemo: true,
       payload: {
+        discipline: 'Fizik',
+        scientist: 'İbn el-Heysem (Alhazen)',
+        year: 1021,
+        summary: 'Görme ve ışığın yayılması üzerine deneysel optik çalışmaları. Kitabü’l-Menazır yaklaşık 11. yüzyıl başlarında yazılmıştır.',
         inventor: 'İbn el-Heysem (Alhazen)',
         century: '11. Yüzyıl',
         discovery: 'Işığın nesnelerden göze yansıdığı teorisi ve karanlık oda (camera obscura) ilkesi.',
@@ -599,6 +603,36 @@ function createDemoSeedData(): {
       },
       createdAt: now,
       updatedAt: now,
+    },
+    {
+      id: 'demo-science-newton', moduleId: 'bilim-muzesi', entityType: 'science_discovery',
+      title: "Newton ve hareket yasaları", subtitle: "Isaac Newton · 1687", category: "Fizik",
+      tags: ['bilim', "Fizik"], isFavorite: false, isArchived: false, privacyDomain: 'genel', isDemo: true,
+      payload: {"discipline":"Fizik","scientist":"Isaac Newton","year":1687,"summary":"Hareket yasaları ve evrensel çekim klasik mekaniğin temelini oluşturur. Okuma: Principia.","formula":"F = ma"}, createdAt: now, updatedAt: now,
+    },
+    {
+      id: 'demo-science-mendeleyev', moduleId: 'bilim-muzesi', entityType: 'science_discovery',
+      title: "Periyodik tablo", subtitle: "Dmitri Mendeleyev · 1869", category: "Kimya",
+      tags: ['bilim', "Kimya"], isFavorite: false, isArchived: false, privacyDomain: 'genel', isDemo: true,
+      payload: {"discipline":"Kimya","scientist":"Dmitri Mendeleyev","year":1869,"summary":"Elementlerin düzenli sınıflandırılması ve henüz keşfedilmemiş elementlerin özelliklerinin öngörülmesi."}, createdAt: now, updatedAt: now,
+    },
+    {
+      id: 'demo-science-mendel', moduleId: 'bilim-muzesi', entityType: 'science_discovery',
+      title: "Kalıtım ilkeleri", subtitle: "Gregor Mendel · 1866", category: "Biyoloji",
+      tags: ['bilim', "Biyoloji"], isFavorite: false, isArchived: false, privacyDomain: 'genel', isDemo: true,
+      payload: {"discipline":"Biyoloji","scientist":"Gregor Mendel","year":1866,"summary":"Bezelye deneyleriyle kalıtsal özelliklerin nesiller arasındaki aktarımının incelenmesi."}, createdAt: now, updatedAt: now,
+    },
+    {
+      id: 'demo-science-kepler', moduleId: 'bilim-muzesi', entityType: 'science_discovery',
+      title: "Gezegen hareketleri", subtitle: "Johannes Kepler · 1609", category: "Astronomi",
+      tags: ['bilim', "Astronomi"], isFavorite: false, isArchived: false, privacyDomain: 'genel', isDemo: true,
+      payload: {"discipline":"Astronomi","scientist":"Johannes Kepler","year":1609,"summary":"Gezegen yörüngelerinin elips biçiminde olduğunun ortaya konması. Okuma: Astronomia Nova."}, createdAt: now, updatedAt: now,
+    },
+    {
+      id: 'demo-science-turing', moduleId: 'bilim-muzesi', entityType: 'science_discovery',
+      title: "Hesaplanabilirlik", subtitle: "Alan Turing · 1936", category: "Teknoloji",
+      tags: ['bilim', "Teknoloji"], isFavorite: false, isArchived: false, privacyDomain: 'genel', isDemo: true,
+      payload: {"discipline":"Teknoloji","scientist":"Alan Turing","year":1936,"summary":"Soyut hesaplama modeliyle algoritmik hesaplanabilirliğin sınırlarının incelenmesi. Okuma: On Computable Numbers."}, createdAt: now, updatedAt: now,
     },
     {
       id: 'demo-music-1',
