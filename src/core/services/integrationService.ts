@@ -141,6 +141,7 @@ function searchableDetails(payload: unknown): string {
 }
 
 export function getRecordRoute(moduleId: string, id: string, type?: string): string {
+  if (moduleId === 'mihrap-ve-minber' && type?.startsWith('mihrap_academy_')) return '/modul/mihrap-ve-minber/akademi';
   if (type === 'module_study' || type === 'imported_record') return `/modul/${moduleId}/calisma?workspaceId=${encodeURIComponent(id)}`;
   const key = moduleId === 'dijital-kutuphanem' ? 'bookId'
     : moduleId === 'alinti-defterim' ? 'quoteId'

@@ -1,3 +1,4 @@
+import { ACADEMY_BACKUP_TYPE, readAcademyBackup } from '../../integrations/mihrap/progress';
 import { getModuleById } from '../registry/modules';
 import type { Book, BookStatus, ExternalAppConfig, ModuleRecord, Quote } from '../types/entities';
 import { isSafeHttpUrl, parseCsvBooks, searchText } from './integrationService';
@@ -17,7 +18,7 @@ export const SOURCE_IMPORTS: Record<string, { hint: string; live?: string; file?
   'siir-deryasi': { hint: 'Defterim ekranındaki JSON yedeği. Kişisel şiirler şiir listesine eklenir.', file: true },
   'automusicpro': { hint: 'Genel Ayarlar ekranından AutoMusic Pro 4 JSON yedeği. Çalma listeleri ritim sekanslarıyla aynı biçimde olmadığı için çalışma defterinde açılır.', file: true },
   'tekamul-yolunda': { hint: 'Tekâmül JSON yedeği. Günlük yazıları tefekkür kayıtlarına eklenir.', file: true },
-  'mihrap-ve-minber': { hint: 'Akademi Yedek ekranındaki JSON dosyası. Ders ilerlemesi ve notlar çalışma defterine aktarılır.', live: 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site', file: true },
+  'mihrap-ve-minber': { hint: 'Akademi Yedek ekranındaki JSON dosyası. Ders ilerlemesi ve notlar gömülü Akademi ekranında açılır.', live: 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site', file: true },
   'namaz-yolculugum': { hint: 'Kaynak tarayıcıdaki namaz-yolculugum:ezber verisi JSON olarak çalışma defterine alınabilir.', live: 'https://namaz-yolculugum.toughtamarind.chatgpt.site', file: true },
   'bugun-ne-yesem': { hint: 'Malzemeler, favori tarif kimlikleri ve alışveriş listesi içeren mutfak JSON yedeği.', live: 'https://bugun-ne-yesem-mutfak.toughtamarind.chatgpt.site', file: true },
   'karadeniz-asistani': { hint: 'Kaynak uygulama rotaları kalıcı olarak saklamıyor. Veri aktarımı için kaynak uygulamanın bir dışa aktarma uç noktası sunması gerekiyor.' },
@@ -154,8 +155,10 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
       break;
     }
     case 'mihrap-ve-minber':
-      if (object(root.completed) && typeof root.version === 'number') {
-        await addRecord('Mihrap ve Minber ders ilerlemesi', omitExportMetadata(root), { privacyDomain: 'ibadet' });
+      if (readAcademyBackup(root)) {
+        await addRecord('Mihrap ve Minber ders ilerlemesi', omitExportMetadata(root), {
+          entityType: ACADEMY_BACKUP_TYPE, privacyDomain: 'ibadet',
+        });
       }
       break;
     case 'bugun-ne-yesem':

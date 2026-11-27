@@ -107,6 +107,9 @@ const WorldbuilderModule = lazy(() =>
 const SelfGrowthModule = lazy(() =>
   import('./modules/tekamul/SelfGrowthModule').then((m) => ({ default: m.SelfGrowthModule }))
 );
+const MihrapAcademyPage = lazy(() =>
+  import('./integrations/mihrap/MihrapAcademyPage').then((m) => ({ default: m.MihrapAcademyPage }))
+);
 const MihrapMinberModule = lazy(() =>
   import('./modules/tekamul/MihrapMinberModule').then((m) => ({ default: m.MihrapMinberModule }))
 );
@@ -249,6 +252,7 @@ export default function App() {
 
             {/* III. YAŞAM -> Tekâmül (3 Modül) */}
             <Route path="/modul/tekamul-yolunda" element={wrap('Tekâmül Yolunda', <SelfGrowthModule />)} />
+            <Route path="/modul/mihrap-ve-minber/akademi" element={wrap('Mihrap ve Minber Akademisi', <MihrapAcademyPage />)} />
             <Route path="/modul/mihrap-ve-minber" element={wrap('Mihrap ve Minber', <MihrapMinberModule />)} />
             <Route path="/modul/namaz-yolculugum" element={wrap('Namaz Yolculuğum', <PrayerJourneyModule />)} />
 
