@@ -114,10 +114,7 @@ const PrayerJourneyModule = lazy(() =>
   import('./modules/tekamul/PrayerJourneyModule').then((m) => ({ default: m.PrayerJourneyModule }))
 );
 
-// Hayat (3 Modules)
-const BizbizeRidersModule = lazy(() =>
-  import('./modules/hayat/BizbizeRidersModule').then((m) => ({ default: m.BizbizeRidersModule }))
-);
+// Hayat (2 Modules)
 const KaradenizAssistantModule = lazy(() =>
   import('./modules/hayat/KaradenizAssistantModule').then((m) => ({
     default: m.KaradenizAssistantModule,
@@ -255,8 +252,7 @@ export default function App() {
             <Route path="/modul/mihrap-ve-minber" element={wrap('Mihrap ve Minber', <MihrapMinberModule />)} />
             <Route path="/modul/namaz-yolculugum" element={wrap('Namaz Yolculuğum', <PrayerJourneyModule />)} />
 
-            {/* III. YAŞAM -> Hayat (3 Modül) */}
-            <Route path="/modul/bizbize-riders" element={wrap('Bizbize Riders', <BizbizeRidersModule />)} />
+            {/* III. YAŞAM -> Hayat (2 Modül) */}
             <Route path="/modul/karadeniz-asistani" element={wrap('Karadeniz Asistanı', <KaradenizAssistantModule />)} />
             <Route path="/modul/bugun-ne-yesem" element={wrap('Bugün Ne Yesem', <WhatToEatModule />)} />
 

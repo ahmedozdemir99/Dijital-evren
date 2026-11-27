@@ -42,6 +42,7 @@ export const LEGACY_REMOVED_MODULE_IDS = [
   'bilge-akademi',
   'deneme-analiz',
   'akilli-bileklik',
+  'bizbize-riders',
 ] as const;
 
 export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetConfig[] = [
@@ -263,7 +264,7 @@ function createDemoSeedData(): {
     {
       id: 'demo-note-1',
       title: 'Ekosistem Başlangıç Notu',
-      content: 'Dijital Evrenim 1–3–6–23 yapısıyla 3 ana alan, 6 merkez ve 23 modülü ortak veri ilişkileriyle birbirine bağlar.',
+      content: 'Dijital Evrenim, üç ana alan ve altı merkezdeki modülleri ortak bilgi ağıyla birbirine bağlar.',
       tags: ['rehber'],
       isDemo: true,
       createdAt: now,
@@ -752,8 +753,8 @@ function createDemoSeedData(): {
   const notifications: NotificationItem[] = [
     {
       id: 'notif-full-ecosystem',
-      title: 'Dijital Evrenim — 3 Alan · 6 Merkez · 23 Modül Hazır',
-      message: '3 ana alan, 6 tematik merkez, 23 işlevsel modül, ortak takvim, koleksiyonlar ve PWA desteği etkin.',
+      title: 'Dijital Evrenim hazır',
+      message: 'Üç ana alan, altı merkez, ortak takvim ve koleksiyonlar kullanıma hazır.',
       moduleId: 'dijital-kutuphanem',
       read: false,
       createdAt: now,
@@ -788,6 +789,49 @@ export interface EcosystemSnapshot {
   attachments: AttachmentFile[];
   activityLogs: ActivityLog[];
   notifications: NotificationItem[];
+}
+
+const retiredModules = new Set<string>(LEGACY_REMOVED_MODULE_IDS);
+
+function retiredRecords(snapshot: Pick<EcosystemSnapshot, 'moduleRecords' | 'knowledgeNodes' | 'quotes'>) {
+  const ids = new Set<string>();
+  let size: number;
+  do {
+    size = ids.size;
+    for (const record of snapshot.moduleRecords) {
+      if (retiredModules.has(record.moduleId) || isRetiredReference(record.sourceModule, record.sourceEntityId, ids)) ids.add(record.id);
+    }
+    for (const record of [...snapshot.knowledgeNodes, ...snapshot.quotes]) {
+      if (isRetiredReference(record.sourceModule, record.sourceEntityId, ids)) ids.add(record.id);
+    }
+  } while (ids.size !== size);
+  return ids;
+}
+
+export function isRetiredReference(moduleId: string | undefined, entityId: string | undefined, ids: ReadonlySet<string>) {
+  return Boolean((moduleId && retiredModules.has(moduleId)) || (entityId && ids.has(entityId)));
+}
+
+export function activeSnapshot(snapshot: EcosystemSnapshot) {
+  const retiredEntityIds = retiredRecords(snapshot);
+  const retired = (moduleId?: string, entityId?: string) => isRetiredReference(moduleId, entityId, retiredEntityIds);
+  return {
+    ...snapshot,
+    retiredEntityIds,
+    moduleSettings: snapshot.moduleSettings.filter((item) => !retired(item.moduleId)),
+    externalApps: snapshot.externalApps.filter((item) => !retired(item.targetModuleId)),
+    moduleRecords: snapshot.moduleRecords.filter((item) => !retired(undefined, item.id)),
+    knowledgeNodes: snapshot.knowledgeNodes.filter((item) => !retired(undefined, item.id)),
+    quotes: snapshot.quotes.filter((item) => !retired(undefined, item.id)),
+    entityRelations: snapshot.entityRelations.filter((item) =>
+      !retired(item.fromModule, item.fromEntityId) && !retired(item.toModule, item.toEntityId)),
+    activityLogs: snapshot.activityLogs.filter((item) => !retired(item.moduleId, item.entityId)),
+    attachments: snapshot.attachments.filter((file) => file.linkedRefs.length === 0 ||
+      file.linkedRefs.some((ref) => !retired(ref.moduleId, ref.entityId))),
+    notifications: snapshot.notifications.filter((item) => !retired(item.moduleId)).map((item) =>
+      item.id === 'notif-full-ecosystem' ? { ...item, title: 'Dijital Evrenim hazır',
+        message: 'Üç ana alan, altı merkez, ortak takvim ve koleksiyonlar kullanıma hazır.' } : item),
+  };
 }
 
 export class IndexedDbEcosystemRepository {
@@ -1089,7 +1133,8 @@ export class IndexedDbEcosystemRepository {
   async exportAll(scope: 'full' | 'legacy_archive' | string = 'full'): Promise<ExportBundle> {
     const snap = await this.loadAll();
     if (scope === 'legacy_archive') {
-      const legacySet = new Set<string>(LEGACY_REMOVED_MODULE_IDS);
+      const ids = retiredRecords(snap);
+      const retired = (moduleId?: string, entityId?: string) => isRetiredReference(moduleId, entityId, ids);
       return {
         schemaVersion: CURRENT_SCHEMA_VERSION,
         app: 'Dijital Evrenim',
@@ -1101,17 +1146,16 @@ export class IndexedDbEcosystemRepository {
           moduleSettings: [],
           externalApps: [],
           books: [],
-          quotes: [],
-          knowledgeNodes: [],
-          entityRelations: snap.entityRelations.filter(
-            (r) => legacySet.has(r.fromModule) || legacySet.has(r.toModule)
-          ),
+          quotes: snap.quotes.filter((item) => retired(undefined, item.id)),
+          knowledgeNodes: snap.knowledgeNodes.filter((item) => retired(undefined, item.id)),
+          entityRelations: snap.entityRelations.filter((item) =>
+            retired(item.fromModule, item.fromEntityId) || retired(item.toModule, item.toEntityId)),
           quickNotes: [],
-          moduleRecords: snap.moduleRecords.filter((r) => legacySet.has(r.moduleId)),
-          collections: [],
-          attachments: [],
-          activityLogs: snap.activityLogs.filter((l) => legacySet.has(l.moduleId)),
-          notifications: [],
+          moduleRecords: snap.moduleRecords.filter((item) => retired(undefined, item.id)),
+          collections: snap.collections.filter((collection) => collection.items.some((ref) => retired(ref.moduleId, ref.entityId))),
+          attachments: snap.attachments.filter((file) => file.linkedRefs.some((ref) => retired(ref.moduleId, ref.entityId))),
+          activityLogs: snap.activityLogs.filter((item) => retired(item.moduleId, item.entityId)),
+          notifications: snap.notifications.filter((item) => retired(item.moduleId)),
         },
       };
     }
@@ -1218,6 +1262,19 @@ export class IndexedDbEcosystemRepository {
     const safeNotifications = asValidRecords<NotificationItem>(d.notifications);
 
     const scope = bundle.scope && bundle.scope !== 'full' ? bundle.scope : 'full';
+    if (scope === 'legacy_archive') {
+      await mergeLatestRecords([
+        { store: 'quotes', items: safeQuotes },
+        { store: 'knowledge_nodes', items: safeNodes },
+        { store: 'module_records', items: safeModuleRecords },
+        { store: 'entity_relations', items: safeRelations },
+        { store: 'collections', items: safeCollections },
+        { store: 'attachments', items: safeAttachments },
+        { store: 'activity_logs', items: safeActivityLogs },
+        { store: 'notifications', items: safeNotifications },
+      ].map(({ store, items }) => ({ store: store as StoreName, keyPath: 'id', items })));
+      return;
+    }
 
     if (mode === 'replace') {
       if (scope === 'full') {
@@ -1244,7 +1301,7 @@ export class IndexedDbEcosystemRepository {
         return;
       }
 
-      const scopedIds = new Set<string>(scope === 'legacy_archive' ? LEGACY_REMOVED_MODULE_IDS : [scope]);
+      const scopedIds = new Set<string>([scope]);
       const inModule = (record: { moduleId?: unknown }) => scopedIds.has(String(record.moduleId));
       const inRelation = (record: { fromModule?: unknown; toModule?: unknown }) =>
         scopedIds.has(String(record.fromModule)) || scopedIds.has(String(record.toModule));
@@ -1270,7 +1327,6 @@ export class IndexedDbEcosystemRepository {
       putManyInStore('module_records', safeModuleRecords),
       putManyInStore('collections', safeCollections),
       putManyInStore('attachments', safeAttachments),
-      ...scope === 'legacy_archive' ? [putManyInStore('activity_logs', safeActivityLogs)] : [],
     ]);
   }
 

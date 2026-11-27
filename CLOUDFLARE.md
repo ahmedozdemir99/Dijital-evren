@@ -17,8 +17,8 @@ GitHub deposu `ahmedozdemir99/Dijital-evren`, üretim dalı `main`. Proje kökü
 
 ## Supabase
 
-1. Bu uygulama için ayrılmış Supabase projesinde `supabase/migrations` altındaki yedek migrasyonunu uygulayın. Mevcut iş uygulamalarına ait Supabase projelerini ayrı tutun.
-2. Auth altında e-posta/parola yöntemini ve erişim vereceğiniz hesapları hazırlayın. Derlemeye `VITE_SUPABASE_URL` ve `VITE_SUPABASE_PUBLISHABLE_KEY` verin. Yalnızca Supabase publishable veya legacy anon anahtarı kullanın.
+1. Dijital Evrenim’in ayrı Supabase projesi üretim için kullanılır. Şema değişiklikleri `supabase/migrations` altında tutulur.
+2. Ayarlar’daki **İlk kez bulut hesabı aç** seçeneği ile Supabase tarafından e-posta almaya yetkili adrese bir onay gönderilebilir. Onaydan sonra e-posta ve parola ile oturum açılır. Üretim derlemesi ayrılmış projenin yayımlanabilir anahtarını kullanır. Başka bir ortam için hem `VITE_SUPABASE_URL` hem `VITE_SUPABASE_PUBLISHABLE_KEY` verin.
 3. Ayarlar üzerinden bir test hesabıyla yükleme ve indirmeyi, ikinci hesapla yedeklere erişimin engellendiğini doğrulayın. Satır düzeyi erişim kullanıcı kimliğine dayanır. Bulut eşitleme yeni kayıtları ve daha yakın tarihli düzenlemeleri birleştirir. Yerel silmeler, profil, uygulama ayarları ve geçici işlem geçmişi cihazlar arasında birleştirilmez. Tam kapsam bu sürümün JSON yedeğinde bulunur.
 4. Bulut kaydı kullanıcı isteğiyle yürütülür. Her başarılı yükleme bir sürüm oluşturur. Arayüz en son 20 sürümü listeler. İndirilen eski bir sürümü Ayarlar’dan geri yükleyebilirsiniz.
 

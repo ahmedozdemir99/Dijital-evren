@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Bike, Compass, Globe, MapPin, Search, Trash2, UtensilsCrossed } from 'lucide-react';
+import { Compass, Globe, MapPin, Search, Trash2, UtensilsCrossed } from 'lucide-react';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
@@ -107,34 +107,6 @@ export function KaradenizAssistantModule() {
     setDescription('');
     setShowNew(false);
     setSearchParams({ recordId: created.id });
-  };
-
-  const handleSendToRiders = async (spot: ModuleRecord<KaradenizPayload>) => {
-    const rec = await addModuleRecord({
-      moduleId: 'bizbize-riders',
-      entityType: 'ride',
-      title: `${spot.payload.province} Rotası: ${spot.title}`,
-      subtitle: 'Karadeniz Asistanı Rota Aktarımı',
-      category: 'Sürüş Kaydı',
-      tags: ['Karadeniz Rotası'],
-      isFavorite: false,
-      isArchived: false,
-      privacyDomain: 'genel',
-      sourceModule: 'karadeniz-asistani',
-      sourceEntityId: spot.id,
-      sourceLabel: spot.title,
-      date: localDateIso(),
-      payload: {
-        kind: 'ride',
-        bikeModel: 'Planlanan Rota',
-        odometerKm: 0,
-        distanceKm: 120,
-        routeStops: `${spot.payload.province} → ${spot.title}`,
-        notes: spot.payload.description,
-      },
-    });
-    notify('Gezi noktası Bizbize Riders rota planına gönderildi.');
-    navigate(`/modul/bizbize-riders?recordId=${rec.id}`);
   };
 
   const handleSendDishToKitchen = async (spot: ModuleRecord<KaradenizPayload>) => {
@@ -353,14 +325,6 @@ export function KaradenizAssistantModule() {
               )}
 
               <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSendToRiders(selected)}
-                  className="h-8 inline-flex items-center justify-center gap-1.5 px-3 text-xs rounded-lg bg-[#DFA183] text-[#10151E] font-medium whitespace-nowrap shrink-0"
-                >
-                  <Bike className="w-3.5 h-3.5" />
-                  Bizbize Riders Rotasına Ekle
-                </button>
                 <button
                   type="button"
                   onClick={() => handleSendDishToKitchen(selected)}

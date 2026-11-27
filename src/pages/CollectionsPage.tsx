@@ -1,3 +1,4 @@
+import { isRetiredReference } from '../core/repositories/ecosystemRepository';
 import { getRecordRoute } from '../core/services/integrationService';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -14,6 +15,7 @@ export function CollectionsPage() {
     moduleRecords,
     moduleSettings,
     collections,
+    retiredEntityIds,
     addCollection,
     deleteCollection,
     removeItemFromCollection,
@@ -205,13 +207,13 @@ export function CollectionsPage() {
                 </button>
               </div>
 
-              {col.items.length === 0 ? (
+              {!col.items.some((item) => !isRetiredReference(item.moduleId, item.entityId, retiredEntityIds)) ? (
                 <p className="text-xs text-[#546070] dark:text-[#9BA7B6]">
                   Henüz öğe eklenmedi. Herhangi bir modülde "Koleksiyona Ekle" butonunu kullanabilirsiniz.
                 </p>
               ) : (
                 <div className="space-y-1.5 text-xs">
-                  {col.items.map((item) => {
+                  {col.items.filter((item) => !isRetiredReference(item.moduleId, item.entityId, retiredEntityIds)).map((item) => {
                     const modName = getModuleById(item.moduleId)?.name ?? item.moduleId;
                     const targetRoute = getRecordRoute(item.moduleId, item.entityId, item.entityType);
                     return (

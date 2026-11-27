@@ -19,7 +19,6 @@ export const SOURCE_IMPORTS: Record<string, { hint: string; live?: string; file?
   'tekamul-yolunda': { hint: 'Tekâmül JSON yedeği. Günlük yazıları tefekkür kayıtlarına eklenir.', file: true },
   'mihrap-ve-minber': { hint: 'Akademi Yedek ekranındaki JSON dosyası. Ders ilerlemesi ve notlar çalışma defterine aktarılır.', live: 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site', file: true },
   'namaz-yolculugum': { hint: 'Kaynak tarayıcıdaki namaz-yolculugum:ezber verisi JSON olarak çalışma defterine alınabilir.', live: 'https://namaz-yolculugum.toughtamarind.chatgpt.site', file: true },
-  'bizbize-riders': { hint: 'Sohbet yedeği JSON dosyası. Özel mesajlar kişisel gizlilikle çalışma defterinde saklanır.', live: 'https://bizbize-riders.toughtamarind.chatgpt.site', file: true },
   'bugun-ne-yesem': { hint: 'Malzemeler, favori tarif kimlikleri ve alışveriş listesi içeren mutfak JSON yedeği.', live: 'https://bugun-ne-yesem-mutfak.toughtamarind.chatgpt.site', file: true },
   'karadeniz-asistani': { hint: 'Kaynak uygulama rotaları kalıcı olarak saklamıyor. Veri aktarımı için kaynak uygulamanın bir dışa aktarma uç noktası sunması gerekiyor.' },
 };
@@ -157,12 +156,6 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
     case 'mihrap-ve-minber':
       if (object(root.completed) && typeof root.version === 'number') {
         await addRecord('Mihrap ve Minber ders ilerlemesi', omitExportMetadata(root), { privacyDomain: 'ibadet' });
-      }
-      break;
-    case 'bizbize-riders':
-      if (root.app === 'BizBize Riders' && Array.isArray(root.messages)) {
-        const { deviceId, ...archive } = omitExportMetadata(root);
-        await addRecord('Bizbize Riders sohbet arşivi', archive);
       }
       break;
     case 'bugun-ne-yesem':

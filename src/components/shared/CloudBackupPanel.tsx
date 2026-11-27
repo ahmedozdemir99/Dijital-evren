@@ -8,6 +8,7 @@ const button = 'min-h-11 rounded-lg border border-current/20 px-4 py-2 text-sm f
 
 export function CloudBackupPanel() {
   const client = supabase;
+  const [registering, setRegistering] = useState(false);
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
   const [history, setHistory] = useState<CloudBackup[]>([]);
@@ -100,26 +101,47 @@ export function CloudBackupPanel() {
               })}>JSON indir</button>
             </div>}
           </div>
-        ) : <form className="mt-3 flex flex-wrap items-end gap-3" onSubmit={(event) => {
-          event.preventDefault();
-          const form = event.currentTarget;
-          const data = new FormData(form);
-          void run(async () => {
-            const result = await client.auth.signInWithPassword({
-              email: String(data.get('email')).trim(), password: String(data.get('password')),
+        ) : <div className="mt-3 space-y-3">
+          <form className="flex flex-wrap items-end gap-3" onSubmit={(event) => {
+            event.preventDefault();
+            const form = event.currentTarget;
+            const data = new FormData(form);
+            void run(async () => {
+              const credentials = {
+                email: String(data.get('email')).trim(),
+                password: String(data.get('password')),
+              };
+              if (registering) {
+                const result = await client.auth.signUp({
+                  ...credentials, options: { emailRedirectTo: window.location.origin + '/ayarlar' },
+                });
+                if (result.error) throw new Error('Hesap oluşturulamadı. Supabase projesinde e-posta almaya yetkili adresinizi kullanın ve daha sonra tekrar deneyin.');
+                if (!result.data.session) {
+                  setRegistering(false);
+                  setFeedback('E-postanızdaki onay bağlantısını açın, ardından burada oturum açın.');
+                }
+              } else {
+                const result = await client.auth.signInWithPassword(credentials);
+                if (result.error) throw new Error('Oturum açılamadı. E-posta, parola ve e-posta onayını kontrol edin.');
+              }
+              form.reset();
             });
-            if (result.error) throw new Error('Oturum açılamadı. E-posta, parola ve hesap durumunu kontrol edin.');
-            form.reset();
-          });
-        }}>
-          <label className="text-sm">E-posta
-            <input className="mt-1 block min-h-11 w-full rounded-lg border border-current/20 bg-transparent px-3" name="email" type="email" autoComplete="username" required />
-          </label>
-          <label className="text-sm">Parola
-            <input className="mt-1 block min-h-11 w-full rounded-lg border border-current/20 bg-transparent px-3" name="password" type="password" autoComplete="current-password" required />
-          </label>
-          <button type="submit" className={button} disabled={busy}>Oturum aç</button>
-        </form>}
+          }}>
+            <label className="text-sm">E-posta
+              <input className="mt-1 block min-h-11 w-full rounded-lg border border-current/20 bg-transparent px-3" name="email" type="email" autoComplete="username" required />
+            </label>
+            <label className="text-sm">Parola
+              <input className="mt-1 block min-h-11 w-full rounded-lg border border-current/20 bg-transparent px-3" name="password" type="password"
+                minLength={registering ? 12 : undefined} autoComplete={registering ? 'new-password' : 'current-password'} required />
+            </label>
+            <button type="submit" className={button} disabled={busy}>{registering ? 'Hesabı oluştur' : 'Oturum aç'}</button>
+          </form>
+          {registering && <p className="text-sm">Supabase projesinde e-posta almaya yetkili adresinizi ve en az 12 karakterli bir parola kullanın.</p>}
+          <button type="button" className="min-h-10 text-sm underline" disabled={busy}
+            onClick={() => { setRegistering((value) => !value); setFeedback(''); setError(''); }}>
+            {registering ? 'Oturum açmaya dön' : 'İlk kez bulut hesabı aç'}
+          </button>
+        </div>}
       {busy && <p className="mt-2 text-sm" role="status">Bulut işlemi sürüyor…</p>}
       {feedback && <p className="mt-2 text-sm" role="status">{feedback}</p>}
       {error && <p className="mt-2 text-sm text-red-700 dark:text-red-300" role="alert">{error}</p>}

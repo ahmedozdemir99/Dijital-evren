@@ -4,6 +4,7 @@ import {
   DEFAULT_PREFERENCES,
   DEFAULT_PROFILE,
   ecosystemRepository,
+  activeSnapshot,
 } from '../core/repositories/ecosystemRepository';
 import { MODULES } from '../core/registry/modules';
 import { generateId, isSafeDataUrl } from '../core/services/integrationService';
@@ -44,6 +45,7 @@ interface AppState {
   quotes: Quote[];
   knowledgeNodes: KnowledgeNode[];
   entityRelations: EntityRelation[];
+  retiredEntityIds: ReadonlySet<string>;
   quickNotes: QuickNote[];
   moduleRecords: ModuleRecord[];
   collections: ThematicCollection[];
@@ -201,6 +203,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   quotes: [],
   knowledgeNodes: [],
   entityRelations: [],
+  retiredEntityIds: new Set(),
   quickNotes: [],
   moduleRecords: [],
   collections: [],
@@ -219,7 +222,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       set({ loading: true, error: null });
       const snap = await ecosystemRepository.initialize();
       set({
-        ...snap,
+        ...activeSnapshot(snap),
         initialized: true,
         loading: false,
       });
@@ -234,7 +237,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   refreshAll: async () => {
     const snap = await ecosystemRepository.loadAll();
-    set({ ...snap });
+    set(activeSnapshot(snap));
   },
 
   recordModuleOpen: async (moduleId) => {
@@ -1111,30 +1114,30 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   importExternal: async (data) => {
     const count = await ecosystemRepository.importExternal(data);
-    set(await ecosystemRepository.loadAll());
+    set(activeSnapshot(await ecosystemRepository.loadAll()));
     return count;
   },
 
   mergeCloudBackup: async (bundle) => {
     await ecosystemRepository.mergeCloudBackup(bundle);
-    set(await ecosystemRepository.loadAll());
+    set(activeSnapshot(await ecosystemRepository.loadAll()));
   },
 
   importBundle: async (bundle, mode = 'replace') => {
     await ecosystemRepository.importBundle(bundle, mode);
     const snap = await ecosystemRepository.loadAll();
-    set({ ...snap });
+    set(activeSnapshot(snap));
   },
 
   clearDemoData: async () => {
     await ecosystemRepository.clearDemoData();
     const snap = await ecosystemRepository.loadAll();
-    set({ ...snap });
+    set(activeSnapshot(snap));
   },
 
   resetAllData: async () => {
     await ecosystemRepository.resetAllData();
     const snap = await ecosystemRepository.loadAll();
-    set({ ...snap });
+    set(activeSnapshot(snap));
   },
 }));

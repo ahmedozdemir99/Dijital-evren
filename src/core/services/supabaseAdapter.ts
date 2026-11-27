@@ -1,8 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
 import type { ExportBundle } from '../types/entities';
 
-const url = import.meta.env?.VITE_SUPABASE_URL?.trim();
-const key = (import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env?.VITE_SUPABASE_ANON_KEY)?.trim();
+import { productionSupabase } from './productionSupabase';
+
+const overrideUrl = import.meta.env?.VITE_SUPABASE_URL?.trim();
+const overrideKey = (import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env?.VITE_SUPABASE_ANON_KEY)?.trim();
+const useProductionConfig = import.meta.env?.PROD && !overrideUrl && !overrideKey;
+const url = useProductionConfig ? productionSupabase.url : overrideUrl;
+const key = useProductionConfig ? productionSupabase.publishableKey : overrideKey;
+
 function cloudClient() {
   if (!url || !key) return null;
   try {
