@@ -111,6 +111,10 @@
     --menu-light: #812b68;
     --menu-dark: #f2b1df;
   }
+  .menu-link:where([data-menu-color="lime"]) {
+    --menu-light: #526618;
+    --menu-dark: #d3e68d;
+  }
   .menu-link:where([data-menu-color="slate"]) {
     --menu-light: #405268;
     --menu-dark: #b9c9dc;

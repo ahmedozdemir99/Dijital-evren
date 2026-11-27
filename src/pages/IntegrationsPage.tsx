@@ -1,6 +1,6 @@
 import {
   BookOpen, BookOpenCheck, Compass, CookingPot, GraduationCap, LibraryBig, MessagesSquare,
-  MoonStar, Music2, Quote, Sprout,
+  MoonStar, Music2, Quote, Sprout, Trophy,
 } from 'lucide-react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { EXISTING_APPS_LIST } from '../core/registry/modules';
@@ -18,9 +18,14 @@ const appearance: Record<string, { color: string; icon: typeof BookOpen }> = {
   'bugun-ne-yesem': { color: 'orange', icon: CookingPot },
   'karadeniz-asistani': { color: 'cyan', icon: Compass },
   'bilge-akademi': { color: 'slate', icon: BookOpenCheck },
+  'zeka-pro-ligi': { color: 'lime', icon: Trophy },
 };
 
-const applications = [...EXISTING_APPS_LIST, { appId: 'bilge-akademi', name: 'Bilge Akademi' }];
+const applications = [
+  ...EXISTING_APPS_LIST,
+  { appId: 'bilge-akademi', name: 'Bilge Akademi' },
+  { appId: 'zeka-pro-ligi', name: 'Zekâ Pro Ligim' },
+];
 
 export function ApplicationLauncher() {
   return (

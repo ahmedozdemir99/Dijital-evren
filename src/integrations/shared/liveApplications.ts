@@ -12,6 +12,7 @@ export const INDEPENDENT_APPLICATIONS: Record<string, string> = {
   automusicpro: 'https://automusic-pro.ai.studio/',
   'tekamul-yolunda': 'https://tek-mul-yolunda.pages.dev/',
   'bilge-akademi': 'https://bilge-akademi4.pages.dev/',
+  'zeka-pro-ligi': 'https://zeka-pro-ligim.pages.dev/',
 };
 
 export function independentSourceUrl(appId: string): string | undefined {
