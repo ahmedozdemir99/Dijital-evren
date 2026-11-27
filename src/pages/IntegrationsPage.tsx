@@ -1,6 +1,6 @@
 import {
-  BookOpen, BookOpenCheck, Compass, CookingPot, GraduationCap, LibraryBig, MessagesSquare,
-  MoonStar, Music2, Quote, Sprout, Trophy,
+  BookOpen, BookOpenCheck, ChartNoAxesCombined, Compass, CookingPot, GraduationCap, LibraryBig, MessagesSquare,
+  MoonStar, Music2, NotebookPen, Quote, Sprout, Trophy,
 } from 'lucide-react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { EXISTING_APPS_LIST } from '../core/registry/modules';
@@ -19,12 +19,16 @@ const appearance: Record<string, { color: string; icon: typeof BookOpen }> = {
   'karadeniz-asistani': { color: 'cyan', icon: Compass },
   'bilge-akademi': { color: 'slate', icon: BookOpenCheck },
   'zeka-pro-ligi': { color: 'lime', icon: Trophy },
+  'deneme-analiz': { color: 'red', icon: ChartNoAxesCombined },
+  'kulliyat-gunlugum': { color: 'emerald', icon: NotebookPen },
 };
 
 const applications = [
   ...EXISTING_APPS_LIST,
   { appId: 'bilge-akademi', name: 'Bilge Akademi' },
   { appId: 'zeka-pro-ligi', name: 'Zekâ Pro Ligim' },
+  { appId: 'deneme-analiz', name: 'LGS Deneme Analiz' },
+  { appId: 'kulliyat-gunlugum', name: 'Külliyat Günlüğüm' },
 ];
 
 export function ApplicationLauncher() {

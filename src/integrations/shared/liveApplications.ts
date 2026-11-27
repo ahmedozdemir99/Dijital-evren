@@ -11,6 +11,8 @@ export const INDEPENDENT_APPLICATIONS: Record<string, string> = {
   'tekamul-yolunda': 'https://tek-mul-yolunda.pages.dev/',
   'bilge-akademi': 'https://bilge-akademi4.pages.dev/',
   'zeka-pro-ligi': 'https://zeka-pro-ligim.pages.dev/',
+  'deneme-analiz': 'https://deneme-analiz-amk.pages.dev/',
+  'kulliyat-gunlugum': 'https://kulliyatgunlugum.pages.dev/',
 };
 
 export function independentSourceUrl(appId: string): string | undefined {
