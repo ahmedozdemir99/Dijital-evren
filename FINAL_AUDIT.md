@@ -3,6 +3,9 @@
 **Tarih:** 2026-11-26  
 **Kapsam:** **1–3–6–23** Nihai Mimarisi (1 Bütünleşik Ana Uygulama, 3 Ana Alan, 6 Tematik Merkez, 23 İşlevsel Modül), Ortak Çekirdek Servisler, IndexedDB v3 Katmanı, Sunucu API Katmanı (`server.ts`), Entegrasyonlar, PWA Yapısı ve Güvenlik Kontrolleri
 
+
+Bu rapor 26 Kasım sürümünü belgeliyor. Güncel sürümdeki yayın yapılandırması, bulut eşitleme kapsamı ve asistanın erişim koşulları için [Cloudflare ve Supabase kurulum belgesine](CLOUDFLARE.md) bakın. Entegrasyonlar ekranında her bağımsız uygulamanın desteklenen aktarım biçimi gösterilir.
+
 ---
 
 ## 1. Nihai Mimari Dönüşüm (1–3–6–23) ve Doğrulanan Düzeltmeler

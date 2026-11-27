@@ -15,6 +15,6 @@ export default {
     const asset = await env.ASSETS.fetch(request);
     if (asset.status !== 404 || request.method !== 'GET' ||
       !request.headers.get('Accept')?.includes('text/html') || /\.[^/]+$/.test(url.pathname)) return asset;
-    return env.ASSETS.fetch(new Request(new URL('/index.html', url), { headers: request.headers }));
+    return env.ASSETS.fetch(new Request(new URL('/', url), { headers: request.headers }));
   },
 };

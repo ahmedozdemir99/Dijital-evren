@@ -480,3 +480,36 @@ test('assistant rejects unsigned and unauthorized requests before contacting Gem
   assert.equal(denied.status, 403);
   assert.equal(stub.mock.callCount(), 1);
 });
+
+test('assistant validates a Supabase session and forwards only bounded, text-only context', async (t) => {
+  const { onRequestPost } = await import('../../../functions/api/ai/assist.ts');
+  const env = { GEMINI_API_KEY: 'provider-key', SUPABASE_URL: 'https://project.example.invalid',
+    SUPABASE_PUBLISHABLE_KEY: 'publishable-key', AI_ALLOWED_USER_IDS: 'owner' };
+  const seen: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (input: string | URL, options: RequestInit) => {
+    seen.push(String(input));
+    if (seen.length === 1) {
+      assert.equal(new Headers(options.headers).get('Authorization'), 'Bearer session');
+      return Response.json({ id: 'owner' });
+    }
+    assert.equal(new Headers(options.headers).get('Authorization'), null);
+    const sent = JSON.parse(String(options.body));
+    assert.equal(sent.contents.length, 7);
+    assert.equal(sent.contents[0].parts[0].text.length, 1500);
+    assert.ok(sent.contents.at(-1).parts[0].text.endsWith('Bir soru'));
+    return Response.json({ candidates: [{ content: { parts: [
+      { text: 'internal thought', thought: true }, { text: 'Türkçe yanıt' },
+    ] } }] });
+  });
+  const request = new Request('https://local.invalid/api/ai/assist', {
+    method: 'POST', headers: { Authorization: 'Bearer session', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Bir soru', history: Array.from({ length: 8 }, () => ({ role: 'user', text: 'x'.repeat(1700) })) }),
+  });
+  const response = await onRequestPost({ request, env });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).reply, 'Türkçe yanıt');
+  assert.deepEqual(seen, [
+    'https://project.example.invalid/auth/v1/user',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+  ]);
+});

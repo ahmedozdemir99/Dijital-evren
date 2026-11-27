@@ -98,7 +98,7 @@ export function AppShell({ children }: AppShellProps) {
         : 'Merkez';
     }
     if (location.pathname.startsWith('/modul/')) {
-      const id = location.pathname.replace('/modul/', '');
+      const [id] = location.pathname.slice('/modul/'.length).split('/');
       const mod = MODULES.find((m) => m.id === id);
       return mod ? mod.name : 'Modül';
     }

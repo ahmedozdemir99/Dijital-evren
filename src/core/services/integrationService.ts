@@ -282,7 +282,7 @@ export function buildCalendarEvents(data: {
       moduleId: rec.moduleId,
       moduleName: mod?.name ?? rec.moduleId,
       centerColor: mod ? data.centerColors[mod.centerId] ?? '#D6B782' : '#D6B782',
-      route: `/modul/${rec.moduleId}?recordId=${encodeURIComponent(rec.id)}`,
+      route: getRecordRoute(rec.moduleId, rec.id, rec.entityType),
       privacyDomain: rec.privacyDomain,
     });
   }
