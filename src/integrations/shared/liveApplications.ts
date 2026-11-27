@@ -1,11 +1,9 @@
-import { ACADEMY_ROUTE } from '../mihrap/progress';
-
 export const INDEPENDENT_APPLICATIONS: Record<string, string> = {
   'dijital-kutuphanem': 'https://final-kutuphanem.pages.dev/',
   'alinti-defterim': 'https://al-nt-defterim.pages.dev/',
   'sohbet-arsivi': 'https://sohbet-arsivi-ejs.pages.dev/',
   'siir-deryasi': 'https://siir-deryasi.pages.dev/',
-  'mihrap-ve-minber': ACADEMY_ROUTE,
+  'mihrap-ve-minber': 'https://mihrap-ve-minber.pages.dev/',
   'namaz-yolculugum': 'https://namaz-yolculugum.pages.dev/',
   'bugun-ne-yesem': 'https://bugun-ne-yesem.pages.dev/',
   'karadeniz-asistani': 'https://karadeniz-asistani.pages.dev/',
