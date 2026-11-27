@@ -578,12 +578,14 @@ test('original Mihrap Akademisi backup maps real lessons and preserves local edi
 
 test('application links use the verified independent publications', async () => {
   const { INDEPENDENT_APPLICATIONS, independentApplicationHref } = await import('../../integrations/shared/liveApplications.ts');
-  assert.equal(Object.keys(INDEPENDENT_APPLICATIONS).length, EXISTING_APPS_LIST.length + 2);
+  assert.equal(Object.keys(INDEPENDENT_APPLICATIONS).length, EXISTING_APPS_LIST.length + 4);
   assert.equal(independentApplicationHref('automusicpro'), 'https://automusic-pro.ai.studio/');
   assert.equal(independentApplicationHref('tekamul-yolunda'), 'https://tek-mul-yolunda.pages.dev/');
   assert.equal(independentApplicationHref('bilge-akademi'), 'https://bilge-akademi4.pages.dev/');
   assert.equal(independentApplicationHref('zeka-pro-ligi'), 'https://zeka-pro-ligim.pages.dev/');
   assert.equal(independentApplicationHref('mihrap-ve-minber'), 'https://mihrap-ve-minber.pages.dev/');
+  assert.equal(independentApplicationHref('deneme-analiz'), 'https://deneme-analiz-amk.pages.dev/');
+  assert.equal(independentApplicationHref('kulliyat-gunlugum'), 'https://kulliyatgunlugum.pages.dev/');
   for (const { appId } of EXISTING_APPS_LIST) {
     assert.equal(new URL(independentApplicationHref(appId)).protocol, 'https:');
   }
