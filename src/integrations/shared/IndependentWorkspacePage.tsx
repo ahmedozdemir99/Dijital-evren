@@ -30,7 +30,7 @@ export function IndependentWorkspacePage() {
     <main className="mx-auto grid min-h-screen w-full max-w-6xl content-start gap-6 px-4 py-5 sm:px-6">
       <header className="flex flex-wrap gap-3 border-b border-current/15 pb-3 text-sm">
         <Link to="/entegrasyonlar" className="underline">Uygulama listesi</Link>
-        <Link to={`/entegrasyonlar#${appId}`} className="underline">Yedek aktarımı</Link>
+        <Link to={`/ayarlar?uygulama=${appId}#uygulama-yedekleri`} className="underline">Yedek aktarımı</Link>
       </header>
       {isMusic && <ExternalDataPanel appId={appId} moduleRoute="/modul/automusicpro" />}
       <Suspense fallback={<p role="status">Uygulama açılıyor…</p>}>
