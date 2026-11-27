@@ -534,3 +534,21 @@ test('retired module data and derived records stay in raw backups and leave the 
   assert.equal(snapshot.moduleRecords.length, 4);
   assert.equal(snapshot.knowledgeNodes.length, 1);
 });
+
+test('original Mihrap Akademisi backup maps real lessons and preserves local edits on export', async () => {
+  const { prepareExternalImport } = await import('../services/externalImports.ts');
+  const { ACADEMY_BACKUP_TYPE, ACADEMY_PROGRESS_TYPE, combinedAcademyProgress } = await import('../../integrations/mihrap/progress.ts');
+  const app = EXISTING_APPS_LIST.find((entry) => entry.appId === 'mihrap-ve-minber')!;
+  const payload = { version: 5, completed: { '0:0': true }, practiceChecks: { 'm0-c0:1': true },
+    notes: { 'm0-c0': 'Dış uygulamada yazılan not.' } };
+  const backup = (await prepareExternalImport(app, JSON.stringify(payload))).records[0];
+  assert.equal(backup.entityType, ACADEMY_BACKUP_TYPE);
+  assert.equal(backup.privacyDomain, 'ibadet');
+  assert.equal(combinedAcademyProgress([backup]).result.notes?.['m0-c0'], payload.notes['m0-c0']);
+  const edited = { ...backup, id: 'native-progress', entityType: ACADEMY_PROGRESS_TYPE,
+    payload: { cardId: 'm0-c0', completed: false, note: 'Evrenim’de düzenlendi.' } };
+  const exported = combinedAcademyProgress([edited, backup]).result;
+  assert.equal(exported.completed['0:0'], false);
+  assert.equal(exported.notes?.['m0-c0'], 'Evrenim’de düzenlendi.');
+  assert.equal(exported.practiceChecks?.['m0-c0:1'], true);
+});

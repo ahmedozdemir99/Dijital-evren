@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { AlertTriangle, BookOpen, CheckCircle2, Quote, Search, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
@@ -117,6 +117,7 @@ export function MihrapMinberModule() {
         recordCount={records.length}
         primaryActionLabel="Yeni Kaynak / Hutbe"
         onPrimaryAction={() => setShowNew((v) => !v)}
+        extraActions={<Link to="/modul/mihrap-ve-minber/akademi" className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-current/20 px-3 text-sm"><BookOpen size={16} /> Akademi dersleri</Link>}
       />
 
       <div className="p-3.5 rounded-xl bg-[#93BF90]/12 border border-[#93BF90]/35 flex items-center gap-2.5 text-xs">

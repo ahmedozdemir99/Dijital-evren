@@ -4,6 +4,6 @@ import { useAppStore } from './useAppStore';
 export function useModuleStore() {
   const state = useAppStore();
   const moduleRecords = useMemo(() => state.moduleRecords.filter((record) =>
-    record.entityType !== 'imported_record' && record.entityType !== 'module_study'), [state.moduleRecords]);
+    record.entityType !== 'imported_record' && record.entityType !== 'module_study' && !record.entityType.startsWith('mihrap_academy_')), [state.moduleRecords]);
   return { ...state, moduleRecords };
 }

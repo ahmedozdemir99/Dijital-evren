@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ExternalLink, FileUp, FolderGit2, RefreshCw } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { ACADEMY_MODULE_ID, ACADEMY_ROUTE } from '../integrations/mihrap/progress';
 import { EXISTING_APPS_LIST, getCenterById, getModuleById } from '../core/registry/modules';
 import { fetchExternalJson, MAX_IMPORT_BYTES, prepareExternalImport, SOURCE_IMPORTS, type ExternalImport } from '../core/services/externalImports';
 import { getRecordRoute } from '../core/services/integrationService';
@@ -48,7 +49,7 @@ function IntegrationCard({ app }: { app: ExternalAppConfig }) {
 
   const count = preview ? preview.books.length + preview.quotes.length + preview.records.length : 0;
   return (
-    <article className="min-w-0 space-y-4 rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1C2633]">
+    <article id={app.appId} className="scroll-mt-24 min-w-0 space-y-4 rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1C2633]">
       <div>
         <p className="text-sm text-[#546070] dark:text-[#9BA7B6]">{getCenterById(app.centerId)?.name}</p>
         <h2 className="mt-1 text-xl font-semibold">{app.name}</h2>
@@ -57,6 +58,7 @@ function IntegrationCard({ app }: { app: ExternalAppConfig }) {
       <div className="flex flex-wrap gap-2">
         {repo && <a className={button} href={repo} target="_blank" rel="noreferrer"><FolderGit2 size={16} /> GitHub deposu</a>}
         {live && <a className={button} href={live} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Uygulamayı aç</a>}
+        {app.appId === ACADEMY_MODULE_ID && <Link className={button} to={ACADEMY_ROUTE}>Gömülü Akademiyi aç</Link>}
         {target && <Link className={button} to={target.route + '/calisma'}>Çalışma defteri</Link>}
       </div>
       {source.file && <div className="space-y-2 border-t border-current/10 pt-3">
@@ -130,6 +132,10 @@ function IntegrationCard({ app }: { app: ExternalAppConfig }) {
 }
 
 export function IntegrationsPage() {
+  const { hash } = useLocation();
+  useEffect(() => {
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' });
+  }, [hash]);
   const externalApps = useAppStore((state) => state.externalApps);
   return (
     <div className="space-y-5">
