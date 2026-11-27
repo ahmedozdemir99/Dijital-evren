@@ -42,6 +42,77 @@
   }
 }
 
+@layer components {
+  .menu-link {
+    --menu-ink: var(--menu-light, #475569);
+    --menu-surface: #fff;
+    color: var(--menu-ink);
+    background-color: color-mix(in srgb, var(--menu-ink) 9%, var(--menu-surface));
+    border: 1px solid color-mix(in srgb, var(--menu-ink) 24%, var(--menu-surface));
+    transition: background-color 160ms ease;
+  }
+
+  .dark .menu-link {
+    --menu-ink: var(--menu-dark, #cbd5e1);
+    --menu-surface: #151d29;
+  }
+
+  .menu-link:hover,
+  .menu-link[aria-current="page"] {
+    background-color: color-mix(in srgb, var(--menu-ink) 18%, var(--menu-surface));
+  }
+
+  .menu-link[aria-current="page"] {
+    border-color: var(--menu-ink);
+  }
+
+  .menu-link:focus-visible {
+    outline: 2px solid var(--menu-ink);
+    outline-offset: 2px;
+  }
+
+  .menu-link:where([data-menu-color="blue"], [data-menu-color="kesif"], [data-menu-color="kozmos"]) {
+    --menu-light: #1e4c93;
+    --menu-dark: #a6c9ff;
+  }
+  .menu-link:where([data-menu-color="teal"], [data-menu-color="idrak"]) {
+    --menu-light: #0f5b53;
+    --menu-dark: #90e1d1;
+  }
+  .menu-link:where([data-menu-color="amber"], [data-menu-color="zihin"], [data-menu-color="irfan"]) {
+    --menu-light: #735015;
+    --menu-dark: #f0cd83;
+  }
+  .menu-link:where([data-menu-color="violet"], [data-menu-color="atolye"]) {
+    --menu-light: #6035a1;
+    --menu-dark: #cfb9ff;
+  }
+  .menu-link:where([data-menu-color="rose"]) {
+    --menu-light: #8e2947;
+    --menu-dark: #ffb3c8;
+  }
+  .menu-link:where([data-menu-color="green"], [data-menu-color="yasam"], [data-menu-color="tekamul"]) {
+    --menu-light: #2b602c;
+    --menu-dark: #b4dfa6;
+  }
+  .menu-link:where([data-menu-color="cyan"]) {
+    --menu-light: #105975;
+    --menu-dark: #9edbf2;
+  }
+  .menu-link:where([data-menu-color="indigo"]) {
+    --menu-light: #403f9e;
+    --menu-dark: #bdbdff;
+  }
+  .menu-link:where([data-menu-color="orange"], [data-menu-color="hayat"]) {
+    --menu-light: #843c18;
+    --menu-dark: #ffc09a;
+  }
+  .menu-link:where([data-menu-color="pink"]) {
+    --menu-light: #812b68;
+    --menu-dark: #f2b1df;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
