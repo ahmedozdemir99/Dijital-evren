@@ -498,7 +498,7 @@ export const EXISTING_APPS_LIST: ExternalAppConfig[] = [
   },
   {
     appId: 'tekamul-yolunda',
-    name: 'Tekâmül Yolunda',
+    name: 'Şahsiyet ve Tekâmül',
     centerId: 'tekamul',
     targetModuleId: 'tekamul-yolunda',
     method: 'none',
