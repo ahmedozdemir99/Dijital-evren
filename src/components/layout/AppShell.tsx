@@ -459,14 +459,19 @@ export function AppShell({ children }: AppShellProps) {
           <span>Takvim</span>
         </NavLink>
 
-        <button
-          type="button"
-          onClick={() => setSearchOpen(true)}
-          className="flex flex-col items-center justify-center gap-0.5 text-[11px] text-[#546070] dark:text-[#9BA7B6] whitespace-nowrap"
+        <NavLink
+          to="/entegrasyonlar"
+          className={({ isActive }) =>
+            `flex flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap ${
+              isActive
+                ? 'text-[#8C6B32] dark:text-[#D6B782] font-medium'
+                : 'text-[#546070] dark:text-[#9BA7B6]'
+            }`
+          }
         >
-          <Search className="w-4 h-4" />
-          <span>Ara</span>
-        </button>
+          <Link2 className="w-4 h-4" />
+          <span>Uygulamalar</span>
+        </NavLink>
 
         <NavLink
           to="/ayarlar"

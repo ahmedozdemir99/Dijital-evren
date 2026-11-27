@@ -31,7 +31,7 @@ export function IntegratedApplicationPage() {
           <IndependentApplicationLink appId={appId} className={action}>
             <ExternalLink size={16} /> Ayrı sekmede aç
           </IndependentApplicationLink>
-          {appId !== 'karadeniz-asistani' && <Link className={action} to={`/entegrasyonlar#${appId}`}>Yedek içe aktar</Link>}
+          {appId !== 'karadeniz-asistani' && <Link className={action} to={`/ayarlar?uygulama=${appId}#uygulama-yedekleri`}>Yedek içe aktar</Link>}
         </div>
       </header>
       <div id="aktarilan-veri" className="scroll-mt-24">

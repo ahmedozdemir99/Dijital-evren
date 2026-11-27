@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Check, Download, RotateCcw, Trash2, Upload } from 'lucide-react';
 import { CloudBackupPanel } from '../components/shared/CloudBackupPanel';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
+import { ApplicationBackupSettings } from '../integrations/shared/ApplicationBackupSettings';
 import {
   CURRENT_SCHEMA_VERSION,
   LEGACY_REMOVED_MODULE_IDS,
@@ -436,12 +436,6 @@ export function SettingsPage() {
               Kullanmadığınız modülleri devre dışı bırakarak menüyü sadeleştirebilirsiniz.
             </p>
           </div>
-          <Link
-            to="/entegrasyonlar"
-            className="text-xs font-medium text-[#8C6B32] dark:text-[#D6B782] hover:underline whitespace-nowrap"
-          >
-            Harici Uygulama Entegrasyonları →
-          </Link>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-h-80 overflow-y-auto pr-1">
@@ -577,6 +571,8 @@ export function SettingsPage() {
             <span>Tüm Verileri Sıfırla</span>
           </button>
         </div>
+
+        <ApplicationBackupSettings />
 
         {/* Restore Preview Panel */}
         {pendingRestore && (
