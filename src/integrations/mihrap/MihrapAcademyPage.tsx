@@ -43,7 +43,7 @@ export function MihrapAcademyPage() {
         <h1 className="text-3xl font-semibold">Mihrap ve Minber Akademisi</h1>
         <p className="text-sm">Dersleri okuyun, soruları çözün ve ilerlemenizi kaydedin.</p>
         <div className="flex flex-wrap gap-2">
-          <Link className={button} to="/entegrasyonlar#mihrap-ve-minber">Akademi yedeğini içe aktar</Link>
+          <Link className={button} to="/ayarlar?uygulama=mihrap-ve-minber#uygulama-yedekleri">Akademi yedeğini içe aktar</Link>
           <button className={button} onClick={exportBackup}>Akademi yedeğini indir</button>
         </div>
       </header>

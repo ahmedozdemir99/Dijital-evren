@@ -131,7 +131,7 @@ export function OfflineIndicator() {
   if (isOnline) return null;
 
   return (
-    <div className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-4 left-4 z-50 flex items-center gap-2 rounded-lg bg-[#1C2633] border border-[#D5B477]/40 px-3 py-1.5 text-xs font-medium text-[#F1F3F5] shadow-lg">
+    <div className="fixed bottom-[calc(1rem+env(safe-area-inset-bottom))] md:bottom-4 left-4 z-50 flex items-center gap-2 rounded-lg bg-[#1C2633] border border-[#D5B477]/40 px-3 py-1.5 text-xs font-medium text-[#F1F3F5] shadow-lg">
       <WifiOff className="w-3.5 h-3.5 text-[#D5B477]" />
       <span>Çevrimdışı Mod — Yerel IndexedDB verileri kullanılıyor</span>
     </div>

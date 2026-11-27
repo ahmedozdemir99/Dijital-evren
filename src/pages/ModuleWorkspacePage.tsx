@@ -100,6 +100,6 @@ function Workspace({ mod }: { mod: ModuleDefinition }) {
 export function ModuleWorkspacePage() {
   const { moduleId = '' } = useParams();
   const mod = getModuleById(moduleId);
-  if (!mod || !MODULE_STUDIES[moduleId]) return <Navigate to="/moduller" replace />;
+  if (!mod || !MODULE_STUDIES[moduleId]) return <Navigate to="/" replace />;
   return <Workspace key={moduleId} mod={mod} />;
 }

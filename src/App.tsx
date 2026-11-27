@@ -1,42 +1,20 @@
 import { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
-import { EvrenAssistantDrawer } from './components/common/EvrenAssistantDrawer';
 import { ModuleErrorBoundary } from './components/common/ModuleErrorBoundary';
-import { UniversalSearchModal } from './components/common/UniversalSearchModal';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
+import { IntegrationsPage } from './pages/IntegrationsPage';
 import { useAppStore } from './store/useAppStore';
 
 // Core Ecosystem Pages
-const DomainDetailPage = lazy(() =>
-  import('./pages/DomainDetailPage').then((m) => ({ default: m.DomainDetailPage }))
-);
-const CenterDetailPage = lazy(() =>
-  import('./pages/CenterDetailPage').then((m) => ({ default: m.CenterDetailPage }))
-);
-const ModulesDirectoryPage = lazy(() =>
-  import('./pages/ModulesDirectoryPage').then((m) => ({ default: m.ModulesDirectoryPage }))
-);
 const IndependentWorkspacePage = lazy(() =>
   import('./integrations/shared/IndependentWorkspacePage').then((m) => ({ default: m.IndependentWorkspacePage }))
 );
 const IntegratedApplicationPage = lazy(() =>
   import('./integrations/shared/IntegratedApplicationPage').then((m) => ({ default: m.IntegratedApplicationPage }))
 );
-const IntegrationsPage = lazy(() =>
-  import('./pages/IntegrationsPage').then((m) => ({ default: m.IntegrationsPage }))
-);
 const SettingsPage = lazy(() =>
   import('./pages/SettingsPage').then((m) => ({ default: m.SettingsPage }))
-);
-const CalendarPage = lazy(() =>
-  import('./pages/CalendarPage').then((m) => ({ default: m.CalendarPage }))
-);
-const CollectionsPage = lazy(() =>
-  import('./pages/CollectionsPage').then((m) => ({ default: m.CollectionsPage }))
-);
-const MediaCenterPage = lazy(() =>
-  import('./pages/MediaCenterPage').then((m) => ({ default: m.MediaCenterPage }))
 );
 
 const ModuleWorkspacePage = lazy(() =>
@@ -169,17 +147,10 @@ export default function App() {
         <Route path="/uygulamalar/:appId" element={<Suspense fallback={<RouteLoader />}>
           {wrap('Uygulama', <IndependentWorkspacePage />)}
         </Suspense>} />
-        <Route path="*" element={<>
-      <AppShell>
+        <Route path="*" element={<AppShell>
         <Suspense fallback={<RouteLoader />}>
           <Routes>
             <Route path="/" element={wrap('Ana Kontrol Paneli', <DashboardPage />)} />
-            <Route path="/moduller" element={wrap('Modül Dizini', <ModulesDirectoryPage />)} />
-            <Route path="/alan/:domainId" element={wrap('Ana Alan', <DomainDetailPage />)} />
-            <Route path="/merkez/:centerId" element={wrap('Tematik Merkez', <CenterDetailPage />)} />
-            <Route path="/takvim" element={wrap('Ortak Takvim', <CalendarPage />)} />
-            <Route path="/koleksiyonlar" element={wrap('Koleksiyonlar', <CollectionsPage />)} />
-            <Route path="/medya" element={wrap('Dosya ve Medya Merkezi', <MediaCenterPage />)} />
             <Route path="/entegrasyonlar/:appId" element={wrap('Bağımsız uygulama', <IntegratedApplicationPage />)} />
             <Route path="/entegrasyonlar" element={wrap('Entegrasyonlar', <IntegrationsPage />)} />
             <Route path="/ayarlar" element={wrap('Ayarlar', <SettingsPage />)} />
@@ -202,15 +173,11 @@ export default function App() {
             <Route path="/modul/bugun-ne-yesem" element={wrap('Bugün Ne Yesem', <WhatToEatModule />)} />
 
             <Route path="/modul/:moduleId/calisma" element={wrap('Çalışma defteri', <ModuleWorkspacePage />)} />
-            <Route path="/modul/*" element={<Navigate to="/moduller" replace />} />
+            <Route path="/modul/*" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
-      </AppShell>
-
-      <UniversalSearchModal />
-      <EvrenAssistantDrawer />
-        </>} />
+      </AppShell>} />
       </Routes>
     </BrowserRouter>
   );

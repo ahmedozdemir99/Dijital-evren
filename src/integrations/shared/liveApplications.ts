@@ -1,14 +1,17 @@
+import { ACADEMY_ROUTE } from '../mihrap/progress';
+
 export const INDEPENDENT_APPLICATIONS: Record<string, string> = {
   'dijital-kutuphanem': 'https://final-kutuphanem.pages.dev/',
   'alinti-defterim': 'https://al-nt-defterim.pages.dev/',
   'sohbet-arsivi': 'https://sohbet-arsivi-ejs.pages.dev/',
   'siir-deryasi': 'https://siir-deryasi.pages.dev/',
-  'mihrap-ve-minber': 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site/',
+  'mihrap-ve-minber': ACADEMY_ROUTE,
   'namaz-yolculugum': 'https://namaz-yolculugum.pages.dev/',
   'bugun-ne-yesem': 'https://bugun-ne-yesem.pages.dev/',
   'karadeniz-asistani': 'https://karadeniz-asistani.pages.dev/',
   automusicpro: 'https://automusic-pro.ai.studio/',
   'tekamul-yolunda': 'https://tek-mul-yolunda.pages.dev/',
+  'bilge-akademi': 'https://bilge-akademi4.pages.dev/',
 };
 
 export function independentSourceUrl(appId: string): string | undefined {
