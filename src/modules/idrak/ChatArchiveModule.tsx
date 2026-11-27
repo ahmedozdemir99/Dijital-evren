@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
-import { BookPlus, MessageSquare, Plus, Quote as QuoteIcon, Search, Trash2, Upload } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { MessageSquare, Plus, Quote as QuoteIcon, Search, Trash2, Upload } from 'lucide-react';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
@@ -183,38 +183,6 @@ export function ChatArchiveModule() {
     setTimeout(() => setFeedback(null), 3000);
   };
 
-  const handleSendToEncyclopedia = async () => {
-    if (!selected) return;
-    const compiled = selected.payload.messages
-      .map((m) => `**${m.sender}:** ${m.text}`)
-      .join('\n\n');
-    await addModuleRecord({
-      moduleId: 'kendi-ansiklopedim',
-      entityType: 'encyclopedia_article',
-      title: selected.title,
-      subtitle: 'Sohbet Arşivinden işlenmiş taslak',
-      category: selected.category,
-      tags: [...selected.tags, 'sohbet-kaynaklı'],
-      isFavorite: false,
-      isArchived: false,
-      privacyDomain: 'genel',
-      sourceModule: 'sohbet-arsivi',
-      sourceEntityId: selected.id,
-      sourceLabel: selected.title,
-      payload: {
-        status: 'taslak',
-        verification: 'inceleniyor',
-        body: selected.payload.summary
-          ? `${selected.payload.summary}\n\n${compiled}`
-          : compiled,
-        bibliography: `Kaynak Sohbet: ${selected.title} (${selected.date ?? ''})`,
-        versions: [{ savedAt: new Date().toISOString(), summary: 'Sohbet Arşivinden oluşturuldu' }],
-      },
-    });
-    setFeedback('Sohbet işlenmiş madde taslağı olarak Kendi Ansiklopedime aktarıldı.');
-    setTimeout(() => setFeedback(null), 3500);
-  };
-
   return (
     <div className="space-y-6">
       <ModuleWorkbenchHeader
@@ -243,9 +211,6 @@ export function ChatArchiveModule() {
       {feedback && (
         <div className="px-4 py-2.5 rounded-lg bg-[#71C6BD]/15 border border-[#71C6BD]/30 text-xs flex items-center justify-between">
           <span>{feedback}</span>
-          <Link to="/modul/kendi-ansiklopedim" className="text-[#71C6BD] hover:underline">
-            Ansiklopediye Git →
-          </Link>
         </div>
       )}
 
@@ -388,14 +353,6 @@ export function ChatArchiveModule() {
                     <h2 className="text-2xl font-semibold mt-0.5">{selected.title}</h2>
                   </div>
                   <div className="flex flex-wrap items-center gap-2 shrink-0">
-                    <button
-                      type="button"
-                      onClick={handleSendToEncyclopedia}
-                      className="h-8 inline-flex items-center justify-center gap-1.5 px-3 text-xs font-medium rounded-lg border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 whitespace-nowrap shrink-0"
-                    >
-                      <BookPlus className="w-3.5 h-3.5 text-[#71C6BD] shrink-0" />
-                      <span>Ansiklopedi Taslağı Oluştur</span>
-                    </button>
                     <button
                       type="button"
                       onClick={() => setDeleteTarget(selected)}

@@ -1,4 +1,4 @@
-import { Link, useParams } from 'react-router-dom';
+import { Link, Navigate, useParams } from 'react-router-dom';
 import { ArrowLeft, ArrowRight, Power, Star } from 'lucide-react';
 import { getCenterById, getDomainById, getModulesByCenter } from '../core/registry/modules';
 import { useAppStore } from '../store/useAppStore';
@@ -25,6 +25,8 @@ export function CenterDetailPage() {
       </div>
     );
   }
+
+  if (!modules.length) return <Navigate to="/moduller" replace />;
 
   return (
     <div className="space-y-6">

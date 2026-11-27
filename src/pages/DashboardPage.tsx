@@ -9,7 +9,6 @@ import {
   Check,
   Eye,
   EyeOff,
-  Network,
   Plus,
   Quote as QuoteIcon,
   SlidersHorizontal,
@@ -160,26 +159,8 @@ export function DashboardPage() {
     });
   }, [books, moduleRecords, moduleSettings, preferences]);
 
-  const curatedWord = useMemo(
-    () => moduleRecords.find((r) => r.moduleId === 'kelime-muzesi' && !r.isArchived),
-    [moduleRecords]
-  );
-  const curatedHistory = useMemo(
-    () => moduleRecords.find((r) => r.moduleId === 'tarih-atlasi' && !r.isArchived),
-    [moduleRecords]
-  );
-  const curatedQuestion = useMemo(
-    () =>
-      moduleRecords.find(
-        (r) =>
-          (r.moduleId === 'felsefe-meclisi' || r.moduleId === 'mantik-akademisi') &&
-          !r.isArchived
-      ),
-    [moduleRecords]
-  );
-
   const sortedWidgets = useMemo(() => {
-    return [...preferences.dashboardWidgets].sort((a, b) => a.order - b.order);
+    return preferences.dashboardWidgets.filter(({ id }) => id !== 'daily_curated').sort((a, b) => a.order - b.order);
   }, [preferences.dashboardWidgets]);
 
   const handleToggleWidget = async (id: DashboardWidgetId) => {
@@ -292,58 +273,6 @@ export function DashboardPage() {
           </section>
         );
 
-      case 'daily_curated':
-        return (
-          <section
-            key="daily_curated"
-            className="p-6 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-4"
-          >
-            <h2 className="text-lg font-semibold text-[#141923] dark:text-[#F1F3F5]">
-              Günün Seçkisi ve Öne Çıkanlar
-            </h2>
-            <div className="divide-y divide-black/5 dark:divide-white/5 space-y-3">
-              <Link
-                to="/modul/kelime-muzesi"
-                className="pt-3 first:pt-0 block group hover:opacity-85 space-y-1"
-              >
-                <span className="text-xs font-medium text-[#D5B477]">Günün Kelimesi · Kelime Müzesi</span>
-                <h3 className="text-lg font-semibold text-[#141923] dark:text-[#F1F3F5]">
-                  {curatedWord?.title ?? 'Hikmet'}
-                </h3>
-                <p className="text-xs text-[#546070] dark:text-[#9BA7B6] line-clamp-2">
-                  {curatedWord?.subtitle ?? 'Derin kavrayış, sebep-sonuç ve değer bilgeliği.'}
-                </p>
-              </Link>
-
-              <Link
-                to="/modul/tarih-atlasi"
-                className="pt-3 block group hover:opacity-85 space-y-1"
-              >
-                <span className="text-xs font-medium text-[#88B4FF]">Tarihte &amp; Mekânda İz</span>
-                <h3 className="text-lg font-semibold text-[#141923] dark:text-[#F1F3F5]">
-                  {curatedHistory?.title ?? 'İpek Yolu ve Anadolu Kervansarayları'}
-                </h3>
-                <p className="text-xs text-[#546070] dark:text-[#9BA7B6] line-clamp-2">
-                  {curatedHistory?.subtitle ?? 'Tarih Atlasında kaynaklı dönem katmanlarını inceleyin.'}
-                </p>
-              </Link>
-
-              <Link
-                to={curatedQuestion ? `/modul/${curatedQuestion.moduleId}` : '/modul/felsefe-meclisi'}
-                className="pt-3 block group hover:opacity-85 space-y-1"
-              >
-                <span className="text-xs font-medium text-[#D5B477]">Günün Sorusu / Akıl Yürütme</span>
-                <h3 className="text-lg font-semibold text-[#141923] dark:text-[#F1F3F5]">
-                  {curatedQuestion?.title ?? 'Bilginin Sınırı ve Sorumluluk'}
-                </h3>
-                <p className="text-xs text-[#546070] dark:text-[#9BA7B6] line-clamp-2">
-                  {curatedQuestion?.subtitle ?? 'Felsefe Meclisi ve Mantık Akademisi ile kavramları sınayın.'}
-                </p>
-              </Link>
-            </div>
-          </section>
-        );
-
       case 'continue_where_left':
         return (
           <section
@@ -448,15 +377,6 @@ export function DashboardPage() {
                       <div className="text-xs text-[#546070] dark:text-[#9BA7B6]">Kavram Düğümü</div>
                     </div>
                   </div>
-                  <div className="pt-2">
-                    <Link
-                      to="/modul/zihin-atlasi"
-                      className="inline-flex items-center gap-1.5 text-xs font-medium text-[#71C6BD] hover:underline"
-                    >
-                      <Network className="w-3.5 h-3.5" />
-                      Zihin Atlası Grafiğini Görüntüle ({entityRelations.length} bağlantı)
-                    </Link>
-                  </div>
                 </div>
               </div>
             ) : (
@@ -484,7 +404,7 @@ export function DashboardPage() {
                   Üç Ana Alan
                 </h2>
                 <p className="text-xs text-[#546070] dark:text-[#9BA7B6] mt-0.5">
-                  3 ana alan, {CENTERS.length} tematik merkez ve {MODULES.length} işlevsel modülden oluşan kişisel dijital ekosisteminiz
+                  3 ana alan, {DOMAINS.flatMap((domain) => getCentersByDomain(domain.id)).length} tematik merkez ve {MODULES.length} işlevsel modülden oluşan kişisel dijital ekosisteminiz
                 </p>
               </div>
               <Link
@@ -869,17 +789,10 @@ export function DashboardPage() {
               <h2 className="text-lg font-semibold text-[#141923] dark:text-[#F1F3F5]">
                 Son Oluşturulan Bilgi Bağlantıları
               </h2>
-              <Link
-                to="/modul/zihin-atlasi"
-                className="text-xs font-medium text-[#71C6BD] hover:underline"
-              >
-                Zihin Atlasında Aç
-              </Link>
             </div>
             {entityRelations.length === 0 ? (
               <p className="text-sm text-[#546070] dark:text-[#9BA7B6]">
-                Henüz modüller arası bağlantı kurulmadı. Bir kitaptan alıntı oluşturduğunuzda veya
-                Zihin Atlasında kavram bağladığınızda burada görünür.
+                Henüz modüller arası bağlantı kurulmadı. Bir kitaptan alıntı oluşturduğunuzda veya bir kayda kavram bağladığınızda burada görünür.
               </p>
             ) : (
               <div className="divide-y divide-black/5 dark:divide-white/5">

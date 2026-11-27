@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom';
 import { RecordActionsBar } from '../components/shared/RecordActionsBar';
 import { getModuleById } from '../core/registry/modules';
 import { MODULE_STUDIES } from '../core/registry/studies';
@@ -100,6 +100,6 @@ function Workspace({ mod }: { mod: ModuleDefinition }) {
 export function ModuleWorkspacePage() {
   const { moduleId = '' } = useParams();
   const mod = getModuleById(moduleId);
-  if (!mod || !MODULE_STUDIES[moduleId]) return <p>Çalışma defteri bulunamadı.</p>;
+  if (!mod || !MODULE_STUDIES[moduleId]) return <Navigate to="/moduller" replace />;
   return <Workspace key={moduleId} mod={mod} />;
 }

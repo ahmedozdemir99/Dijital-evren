@@ -5,7 +5,6 @@ import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import { ApplicationBackupSettings } from '../integrations/shared/ApplicationBackupSettings';
 import {
   CURRENT_SCHEMA_VERSION,
-  LEGACY_REMOVED_MODULE_IDS,
 } from '../core/repositories/ecosystemRepository';
 import { MODULES } from '../core/registry/modules';
 import { localDateIso } from '../core/services/integrationService';
@@ -23,6 +22,7 @@ export function SettingsPage() {
     entityRelations,
     quickNotes,
     moduleRecords,
+    retiredEntityIds,
     collections,
     attachments,
     activityLogs,
@@ -141,9 +141,7 @@ export function SettingsPage() {
     knowledgeNodes.filter((n) => n.isDemo).length +
     moduleRecords.filter((r) => r.isDemo).length;
 
-  const legacyRemovedSet = new Set<string>(LEGACY_REMOVED_MODULE_IDS);
-  const legacyRecordsCount = moduleRecords.filter((r) => legacyRemovedSet.has(r.moduleId)).length;
-  const activeModuleRecordsCount = moduleRecords.length - legacyRecordsCount;
+  const legacyRecordsCount = retiredEntityIds.size;
 
   return (
     <div className="max-w-4xl space-y-8">
@@ -357,23 +355,6 @@ export function SettingsPage() {
           <label className="flex items-start gap-2.5 cursor-pointer">
             <input
               type="checkbox"
-              checked={preferences.crossModuleSharing.allowEducationFromPersonal}
-              onChange={(e) =>
-                updatePreferences({
-                  crossModuleSharing: {
-                    ...preferences.crossModuleSharing,
-                    allowEducationFromPersonal: e.target.checked,
-                  },
-                })
-              }
-              className="mt-1"
-            />
-            <span>İrfan ve Kozmos kayıtlarından Ansiklopedi ve Atölye üretimine izin ver</span>
-          </label>
-
-          <label className="flex items-start gap-2.5 cursor-pointer">
-            <input
-              type="checkbox"
               checked={preferences.crossModuleSharing.allowPersonalFromPrayerSummary}
               onChange={(e) =>
                 updatePreferences({
@@ -385,7 +366,7 @@ export function SettingsPage() {
               }
               className="mt-1"
             />
-            <span>Namaz Yolculuğum özetlerini Tekâmül Yolundaya yansıt</span>
+            <span>Namaz Yolculuğum özetlerini Şahsiyet ve Tekâmül’e yansıt</span>
           </label>
         </div>
 
@@ -489,7 +470,7 @@ export function SettingsPage() {
           <p className="text-xs text-[#546070] dark:text-[#9BA7B6] mt-0.5 tabular-nums">
             Depolama: IndexedDB (Yerel) · Şema Sürümü: v{CURRENT_SCHEMA_VERSION} · Kayıtlar:{' '}
             {books.length} kitap, {quotes.length} alıntı, {knowledgeNodes.length} düğüm,{' '}
-            {activeModuleRecordsCount} modül kaydı
+            {moduleRecords.length} modül kaydı
             {legacyRecordsCount > 0 ? ` (+${legacyRecordsCount} kapsam dışı arşiv)` : ''},{' '}
             {collections.length} koleksiyon, {attachments.length} dosya,{' '}
             {entityRelations.length} ilişki, {quickNotes.length} not, {activityLogs.length} etkinlik
@@ -504,11 +485,7 @@ export function SettingsPage() {
             className="h-9 px-3 text-xs rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] border border-black/10 dark:border-white/10"
           >
             <option value="full">Tam Ekosistem Yedeği</option>
-            {legacyRecordsCount > 0 && (
-              <option value="legacy_archive">
-                Kapsam Dışı Modül Arşivi ({legacyRecordsCount})
-              </option>
-            )}
+            <option value="legacy_archive">Kapsam Dışı Modül Arşivi</option>
             {MODULES.map((m) => (
               <option key={m.id} value={m.id}>
                 Sadece: {m.name}
@@ -585,7 +562,7 @@ export function SettingsPage() {
             </div>
             <p className="text-[#546070] dark:text-[#9BA7B6] tabular-nums">
               İçerik: {pendingRestore.data.books?.length ?? 0} kitap · {pendingRestore.data.quotes?.length ?? 0} alıntı ·{' '}
-              {pendingRestore.data.knowledgeNodes?.length ?? 0} Zihin Atlası düğümü ·{' '}
+              {pendingRestore.data.knowledgeNodes?.length ?? 0} bilgi ağı düğümü ·{' '}
               {pendingRestore.data.moduleRecords?.length ?? 0} modül kaydı ·{' '}
               {pendingRestore.data.collections?.length ?? 0} koleksiyon
             </p>
@@ -631,7 +608,7 @@ export function SettingsPage() {
         <div className="pt-4 border-t border-black/10 dark:border-white/10 text-xs text-[#546070] dark:text-[#9BA7B6] space-y-1">
           <p className="font-semibold text-[#141923] dark:text-[#F1F3F5]">Sistem Bilgisi ve Sürüm Notları</p>
           <p>
-            Üç ana alan, altı merkez ve {MODULES.length} aktif modül. Kapsam dışı kayıtları arşiv yedeği olarak indirebilirsiniz.
+            {MODULES.length} entegre modül. Kapsam dışı kayıtları arşiv yedeği olarak indirebilirsiniz.
           </p>
         </div>
       </section>
@@ -653,7 +630,7 @@ export function SettingsPage() {
       <ConfirmDialog
         open={confirmAction === 'reset_all'}
         title="Tüm Verileri Kalıcı Olarak Sıfırla"
-        description="Yerel depodaki tüm kitaplar, alıntılar, modül kayıtları, Zihin Atlası düğümleri ve ayarlar kalıcı olarak silinecektir. Bu işlem geri alınamaz."
+        description="Yerel depodaki tüm kitaplar, alıntılar, modül kayıtları, bilgi ağı düğümleri ve ayarlar kalıcı olarak silinecektir. Bu işlem geri alınamaz."
         confirmLabel="Evet, Her Şeyi Sıfırla"
         destructive
         onCancel={() => setConfirmAction(null)}

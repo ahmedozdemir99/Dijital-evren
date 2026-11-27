@@ -141,6 +141,9 @@ function searchableDetails(payload: unknown): string {
 }
 
 export function getRecordRoute(moduleId: string, id: string, type?: string): string {
+  if (moduleId === 'alinti-defterim' && type === 'word_entry') {
+    return `/entegrasyonlar/alinti-defterim#${encodeURIComponent(id)}`;
+  }
   if (moduleId === 'mihrap-ve-minber' && type?.startsWith('mihrap_academy_')) return '/modul/mihrap-ve-minber/akademi';
   if (type === 'module_study' || type === 'imported_record') return `/modul/${moduleId}/calisma?workspaceId=${encodeURIComponent(id)}`;
   const key = moduleId === 'dijital-kutuphanem' ? 'bookId'
@@ -210,14 +213,16 @@ export function searchEcosystem(
       category: quote.category ?? 'Alıntı', tags: quote.tags, date: date(quote.updatedAt),
       route: getRecordRoute(moduleId, quote.id), isDemo: quote.isDemo }, quote.text);
   }
-  if (isAllowed('zihin-atlasi')) for (const node of data.knowledgeNodes) {
+  for (const node of data.knowledgeNodes) {
     const source = node.sourceEntityId ? records.get(node.sourceEntityId) : undefined;
     if (!isAllowed(node.sourceModule)) continue;
     if (source && (source.isArchived || (source.payload as { hideFromGlobalSearch?: boolean })?.hideFromGlobalSearch === true ||
       (!allowPrivate && source.privacyDomain !== 'genel'))) continue;
-    const moduleId = 'zihin-atlasi';
-    add({ id: node.id, title: node.title, subtitle: `Zihin Atlası · ${node.nodeType}`, kind: 'knowledge_node',
-      moduleId, tags: node.tags, date: date(node.updatedAt), route: getRecordRoute(moduleId, node.id), isDemo: node.isDemo },
+    const moduleId = node.sourceModule;
+    const route = node.sourceEntityId
+      ? getRecordRoute(moduleId, node.sourceEntityId, source?.entityType) : getModuleById(moduleId)!.route;
+    add({ id: node.id, title: node.title, subtitle: `Bilgi ağı · ${node.nodeType}`, kind: 'knowledge_node',
+      moduleId, tags: node.tags, date: date(node.updatedAt), route, isDemo: node.isDemo },
       node.summary);
   }
   for (const rec of records.values()) {

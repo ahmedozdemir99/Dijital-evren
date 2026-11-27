@@ -14,7 +14,7 @@ export interface ExternalImport {
 
 export const SOURCE_IMPORTS: Record<string, { hint: string; live?: string; file?: boolean }> = {
   'dijital-kutuphanem': { hint: 'Kütüphanedeki JSON yedeği veya kitap CSV dosyası.', file: true },
-  'alinti-defterim': { hint: 'Alıntı ve Lügat JSON yedeği. Alıntılar Alıntı Defterine, sözlük kartları Kelime Müzesine aktarılır.', file: true },
+  'alinti-defterim': { hint: 'Alıntı ve Lügat JSON yedeği. Alıntılar ve sözlük kartları Alıntı Defterim’e aktarılır.', file: true },
   'sohbet-arsivi': { hint: 'Kaynak tarayıcıdaki favori, izleme ilerlemesi ve not verileri JSON olarak alınabilir (SA_FAVS, SA_PROGRESS, SA_NOTES).', live: 'https://sohbet-arsivi-e1701a.toughtamarind.chatgpt.site', file: true },
   'siir-deryasi': { hint: 'Defterim ekranındaki JSON yedeği. Kişisel şiirler, favori işaretleri ve notlarıyla şiir listesine eklenir.', file: true },
   'automusicpro': { hint: 'Genel Ayarlar ekranından AutoMusic Pro 4 JSON yedeği. Çalma listeleri ve favoriler entegre oynatıcıda açılır.', file: true },
@@ -62,8 +62,10 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
   const addRecord = async (title: string, payload: Row, options: Partial<ModuleRecord> = {}, key: unknown = payload) => {
     const moduleId = options.moduleId ?? app.targetModuleId;
     if (!getModuleById(moduleId)) throw new Error('Aktarımın hedef modülü bulunamadı.');
+    // Reimporting a dictionary card must still match its previously saved ID.
+    const identityModuleId = app.appId === 'alinti-defterim' && options.entityType === 'word_entry' ? 'kelime-muzesi' : moduleId;
     result.records.push({
-      id: await importId(app.appId, [moduleId, options.entityType ?? 'archive', key]),
+      id: await importId(app.appId, [identityModuleId, options.entityType ?? 'archive', key]),
       moduleId, entityType: 'imported_record', title, category: 'Harici uygulama yedeği',
       tags: [app.name], isFavorite: false, isArchived: false, privacyDomain: 'kisisel',
       payload, createdAt: now, updatedAt: now, ...options,
@@ -124,7 +126,7 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
             etymologyVerification: 'kaynak_belirtilmedi', sourceRef: text(row.book),
             meaningToday: text(row.meaning), semanticShifts: '', synonyms: [], antonyms: [],
             literaryExample: text(row.example), isForgotten: false, cognates: [],
-          }, { moduleId: 'kelime-muzesi', entityType: 'word_entry', category: 'Lügat kartı' }, row.id ?? row);
+          }, { entityType: 'word_entry', category: 'Lügat kartı' }, row.id ?? row);
         }
       }
       break;

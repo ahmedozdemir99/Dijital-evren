@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeftRight,
-  BookOpen,
   Feather,
   Music,
   Plus,
@@ -178,7 +177,6 @@ export function PoetrySeaModule() {
   const [notes, setNotes] = useState('');
   const [isPersonal, setIsPersonal] = useState(false);
   const [quoteSelection, setQuoteSelection] = useState('');
-  const [inspectWord, setInspectWord] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<ModuleRecord<PoemPayload> | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -281,12 +279,6 @@ export function PoetrySeaModule() {
     });
     setQuoteSelection('');
     notify('Seçili dizeler Alıntı Defterim modülüne gönderildi.');
-  };
-
-  const handleInspectWord = () => {
-    const clean = inspectWord.trim();
-    if (!clean) return;
-    navigate(`/modul/kelime-muzesi?word=${encodeURIComponent(clean)}`);
   };
 
   const handleExportToAutoMusic = async () => {
@@ -789,23 +781,6 @@ export function PoetrySeaModule() {
                           </button>
                         </div>
 
-                        <div className="flex gap-1.5">
-                          <input
-                            type="text"
-                            value={inspectWord}
-                            onChange={(e) => setInspectWord(e.target.value)}
-                            placeholder="Kelime Müzesi'nde incele..."
-                            className="flex-1 min-w-0 h-9 px-2.5 rounded-lg bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10"
-                          />
-                          <button
-                            type="button"
-                            onClick={handleInspectWord}
-                            className="h-9 inline-flex items-center justify-center gap-1 px-3 rounded-lg border border-black/15 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 whitespace-nowrap shrink-0"
-                          >
-                            <BookOpen className="w-3.5 h-3.5 text-[#D5B477]" />
-                            İncele
-                          </button>
-                        </div>
                       </div>
 
                       {selected.payload.isPersonal && (

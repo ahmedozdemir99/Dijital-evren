@@ -28,35 +28,36 @@ import { evaluateMathExpression } from '../../modules/kozmos/MathLabModule.tsx';
 import { computeSolarReferenceTimes } from '../../modules/tekamul/PrayerJourneyModule.tsx';
 import type { Book, KnowledgeNode, ModuleRecord, Quote } from '../types/entities.ts';
 
-test('1-3-6-22 architecture: 3 domains, 6 centers, 22 unique active modules', () => {
+test('the module registry contains exactly the ten integrated applications', () => {
   assert.equal(DOMAINS.length, 3);
   assert.equal(CENTERS.length, 6);
-  assert.equal(MODULES.length, 22);
+  assert.equal(MODULES.length, 10);
   const ids = new Set(MODULES.map((m) => m.id));
-  assert.equal(ids.size, 22);
+  assert.equal(ids.size, 10);
   assert.equal(EXISTING_APPS_LIST.length, 10);
+  assert.deepEqual(ids, new Set(EXISTING_APPS_LIST.map((app) => app.targetModuleId)));
   assert.ok(MODULES.every((m) => m.status === 'active'));
 
   // Exact domain & center counts
   assert.equal(getCentersByDomain('zihin').length, 2);
-  assert.equal(getCentersByDomain('kesif').length, 2);
+  assert.deepEqual(getCentersByDomain('kesif').map((center) => center.id), ['atolye']);
   assert.equal(getCentersByDomain('yasam').length, 2);
-  assert.equal(getModulesByDomain('zihin').length, 12);
-  assert.equal(getModulesByDomain('kesif').length, 5);
+  assert.equal(getModulesByDomain('zihin').length, 4);
+  assert.equal(getModulesByDomain('kesif').length, 1);
   assert.equal(getModulesByDomain('yasam').length, 5);
-  assert.equal(getModulesByCenter('irfan').length, 6);
-  assert.equal(getModulesByCenter('idrak').length, 6);
-  assert.equal(getModulesByCenter('kozmos').length, 3);
-  assert.equal(getModulesByCenter('atolye').length, 2);
+  assert.equal(getModulesByCenter('irfan').length, 1);
+  assert.equal(getModulesByCenter('idrak').length, 3);
+  assert.equal(getModulesByCenter('kozmos').length, 0);
+  assert.equal(getModulesByCenter('atolye').length, 1);
   assert.equal(getModulesByCenter('tekamul').length, 3);
   assert.equal(getModulesByCenter('hayat').length, 2);
 
   // Removed modules and merged tarih-simulatoru must not appear in active registry or feedsInto
-  const retiredSet = new Set<string>([...LEGACY_REMOVED_MODULE_IDS, 'tarih-simulatoru']);
+  const retiredSet = new Set<string>(LEGACY_REMOVED_MODULE_IDS);
   for (const mod of MODULES) {
     assert.equal(retiredSet.has(mod.id), false);
     for (const target of mod.feedsInto) {
-      assert.equal(retiredSet.has(target), false, `${mod.id} feedsInto stale ${target}`);
+      assert.ok(ids.has(target), `${mod.id} feedsInto stale ${target}`);
     }
   }
   for (const app of EXISTING_APPS_LIST) {
@@ -405,7 +406,7 @@ test('computeSolarReferenceTimes formats valid HH:MM strings across full year wi
 test('all modules have distinct study activities', async () => {
   const { MODULE_STUDIES } = await import('../registry/studies.ts');
   assert.deepEqual(Object.keys(MODULE_STUDIES).sort(), MODULES.map(({ id }) => id).sort());
-  assert.equal(new Set(Object.values(MODULE_STUDIES).map(({ title }) => title)).size, 22);
+  assert.equal(new Set(Object.values(MODULE_STUDIES).map(({ title }) => title)).size, MODULES.length);
   assert.ok(Object.values(MODULE_STUDIES).every(({ steps }) => steps.length === 3));
 });
 
@@ -516,6 +517,9 @@ test('retired module data and derived records stay in raw backups and leave the 
   const moduleRecords = [
     { ...base, id: 'ride', moduleId: 'bizbize-riders' },
     { ...base, id: 'watch', moduleId: 'akilli-bileklik' },
+    { ...base, id: 'historical', moduleId: 'tarih-atlasi' },
+    { ...base, id: 'local-word', moduleId: 'kelime-muzesi', entityType: 'word_entry' },
+    { ...base, id: 'ext-alinti-defterim-imported-word', moduleId: 'kelime-muzesi', entityType: 'word_entry' },
     { ...base, id: 'reflection', moduleId: 'tekamul-yolunda', sourceEntityId: 'ride', sourceModule: 'bizbize-riders' },
     { ...base, id: 'other', moduleId: 'tekamul-yolunda' },
   ];
@@ -528,10 +532,13 @@ test('retired module data and derived records stay in raw backups and leave the 
     collections: [], attachments: [], activityLogs: [], notifications: [],
   };
   const active = activeSnapshot(snapshot);
-  assert.deepEqual(active.moduleRecords.map((record) => record.id), ['other']);
+  assert.deepEqual(active.moduleRecords.map((record) => [record.id, record.moduleId]), [
+    ['ext-alinti-defterim-imported-word', 'alinti-defterim'], ['other', 'tekamul-yolunda'],
+  ]);
   assert.deepEqual(active.knowledgeNodes, []);
   assert.ok(active.retiredEntityIds.has('derived-node'));
-  assert.equal(snapshot.moduleRecords.length, 4);
+  assert.equal(snapshot.moduleRecords.length, 7);
+  assert.equal(snapshot.moduleRecords.find((record) => record.id === 'ext-alinti-defterim-imported-word')?.moduleId, 'kelime-muzesi');
   assert.equal(snapshot.knowledgeNodes.length, 1);
 });
 
@@ -568,6 +575,7 @@ test('independent library, quote, poetry and habit backups produce usable local 
   const parse = (id: string, data: object) => prepareExternalImport(EXISTING_APPS_LIST.find((app) => app.appId === id)!, JSON.stringify(data));
   const words = await parse('alinti-defterim', { dictionary: [{ id: 't', word: 'Söz', meaning: 'Kelam' }] });
   assert.equal(words.records[0].entityType, 'word_entry');
+  assert.equal(words.records[0].moduleId, 'alinti-defterim');
   assert.equal((words.records[0].payload as { meaningToday: string }).meaningToday, 'Kelam');
   const library = await parse('dijital-kutuphanem', {
     userBooks: [{ id: 'b', title: 'Yerel kitap' }], quotations: [{ bookId: 'b', bookTitle: 'Yerel kitap', quoteText: 'Kitapta geçen söz' }],

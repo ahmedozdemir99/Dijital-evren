@@ -111,7 +111,10 @@ export function ExternalDataPanel({ appId, moduleRoute }: { appId: string; modul
     : appId === 'alinti-defterim'
       ? [...quotes.filter((quote) => quote.id.startsWith('ext-alinti-defterim-quote-') && !quote.isArchived)
           .map((quote) => ({ id: quote.id, title: quote.text, detail: quote.author, path: getRecordRoute(appId, quote.id) })),
-        ...records.map((record) => ({ id: record.id, title: record.title, detail: record.category, path: getRecordRoute(record.moduleId, record.id, record.entityType) }))]
+        ...records.map((record) => ({ id: record.id, title: record.title,
+          detail: asText(asRow(record.payload).meaningToday) || record.category,
+          path: record.entityType === 'word_entry' ? undefined : getRecordRoute(record.moduleId, record.id, record.entityType),
+        }))]
       : records.map((record) => ({
           id: record.id, title: record.title,
           detail: asText(asRow(record.payload).poetName) || record.subtitle || record.category,
@@ -123,12 +126,16 @@ export function ExternalDataPanel({ appId, moduleRoute }: { appId: string; modul
       {appId === 'siir-deryasi' ? 'İçe aktarılan şiir defteri' : appId === 'tekamul-yolunda' ? 'İçe aktarılan günlük ve alışkanlıklar' : 'Dijital Evrenim’e bağlanan kayıtlar'}
     </h2>
     {!entries.length ? <p className="text-sm">Bağımsız uygulamadaki kayıtları görmek için kendi yedeğinizi içe aktarın.</p> : <ul className="divide-y divide-current/10">
-      {entries.map((entry) => <li key={entry.id}>
-        <Link className="block break-words py-2 hover:underline" to={entry.path}>
+      {entries.map((entry) => {
+        const content = <>
           <span className="line-clamp-2 text-sm font-semibold">{entry.title}</span>
           <span className="text-sm">{entry.detail}</span>
-        </Link>
-      </li>)}
+        </>;
+        return <li key={entry.id} id={entry.id} className="scroll-mt-24 break-words">
+          {entry.path ? <Link className="block py-2 hover:underline" to={entry.path}>{content}</Link>
+            : <div className="py-2">{content}</div>}
+        </li>;
+      })}
     </ul>}
   </section>;
 }
