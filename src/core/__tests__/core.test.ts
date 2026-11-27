@@ -460,6 +460,22 @@ test('external source adapters preserve native formats and repeatable identities
   }
 });
 
+test('assistant shares production Supabase configuration while requiring a key and user allowlist', async () => {
+  const { getAssistantConfig, onRequestGet } = await import('../../../functions/api/health.ts');
+  const { productionSupabase } = await import('../services/productionSupabase.ts');
+  const request = new Request('https://dijital-evren.pages.dev/api/health');
+  const preview = new Request('https://preview.dijital-evren.pages.dev/api/health');
+  const env = { GEMINI_API_KEY: 'example-secret', AI_ALLOWED_USER_IDS: 'owner' };
+  const config = getAssistantConfig(env, request);
+  assert.equal(config?.authUrl.origin, productionSupabase.url);
+  assert.equal(config?.publishableKey, productionSupabase.publishableKey);
+  assert.equal(getAssistantConfig(env, preview), null);
+  assert.equal(getAssistantConfig({ ...env, SUPABASE_URL: 'https://override.example' }, request), null);
+  assert.equal(getAssistantConfig({ ...env, AI_ALLOWED_USER_IDS: ' , ' }, request), null);
+  const body = await onRequestGet({ env, request }).json();
+  assert.deepEqual(body, { status: 'ok', app: 'Dijital Evrenim', aiConfigured: true });
+});
+
 test('assistant rejects unsigned and unauthorized requests before contacting Gemini', async (t) => {
   const { onRequestPost } = await import('../../../functions/api/ai/assist.ts');
   const env = { GEMINI_API_KEY: 'test', SUPABASE_URL: 'https://example.invalid',
@@ -506,7 +522,7 @@ test('assistant validates a Supabase session and forwards only bounded, text-onl
   assert.equal((await response.json()).reply, 'Türkçe yanıt');
   assert.deepEqual(seen, [
     'https://project.example.invalid/auth/v1/user',
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent',
   ]);
 });
 
