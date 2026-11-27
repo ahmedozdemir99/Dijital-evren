@@ -1,3 +1,4 @@
+import { isRetiredReference } from '../core/repositories/ecosystemRepository';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Download, FileText, Image as ImageIcon, Paperclip, Trash2, Upload } from 'lucide-react';
@@ -8,7 +9,7 @@ import type { AttachmentFile, PrivacyDomain } from '../core/types/entities';
 import { useAppStore } from '../store/useAppStore';
 
 export function MediaCenterPage() {
-  const { attachments, addAttachment, deleteAttachment } = useAppStore();
+  const { attachments, retiredEntityIds, addAttachment, deleteAttachment } = useAppStore();
   const [domainFilter, setDomainFilter] = useState<'all' | PrivacyDomain>('all');
   const [uploadDomain, setUploadDomain] = useState<PrivacyDomain>('genel');
   const [deleteTarget, setDeleteTarget] = useState<AttachmentFile | null>(null);
@@ -186,13 +187,13 @@ export function MediaCenterPage() {
                   </div>
                 </div>
 
-                {file.linkedRefs.length > 0 && (
+                {file.linkedRefs.some((ref) => !isRetiredReference(ref.moduleId, ref.entityId, retiredEntityIds)) && (
                   <div className="pt-2 border-t border-black/5 dark:border-white/5 space-y-1 text-[11px]">
                     <p className="text-[#546070] dark:text-[#9BA7B6] flex items-center gap-1">
                       <Paperclip className="w-3 h-3" />
                       Bağlı Kayıtlar:
                     </p>
-                    {file.linkedRefs.map((ref) => (
+                    {file.linkedRefs.filter((ref) => !isRetiredReference(ref.moduleId, ref.entityId, retiredEntityIds)).map((ref) => (
                       <Link
                         key={ref.entityId}
                         to={`/modul/${ref.moduleId}?recordId=${ref.entityId}`}

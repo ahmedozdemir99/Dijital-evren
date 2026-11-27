@@ -6,7 +6,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface PlanetInfo {
   name: string;
@@ -39,7 +39,7 @@ const CONSTELLATIONS = [
 
 export function SkyAtlasModule() {
   const navigate = useNavigate();
-  const { moduleRecords, recordModuleOpen, addModuleRecord, deleteModuleRecord } = useAppStore();
+  const { moduleRecords, recordModuleOpen, addModuleRecord, deleteModuleRecord } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('gokyuzu-atlasi');

@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { Brain, Check, Plus, RotateCw, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -5,7 +6,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface MemoryCardPayload {
   palace: string;
@@ -21,6 +22,7 @@ interface MemoryCardPayload {
 }
 
 export function MemoryPalaceModule() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
     moduleRecords,
     quotes,
@@ -28,7 +30,7 @@ export function MemoryPalaceModule() {
     addModuleRecord,
     updateModuleRecord,
     deleteModuleRecord,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('hafiza-sarayi');
@@ -57,8 +59,19 @@ export function MemoryPalaceModule() {
     [cards, todayStr]
   );
 
-  const [tab, setTab] = useState<'study' | 'palaces' | 'import'>('study');
-  const [selectedPalace, setSelectedPalace] = useState<string>('all');
+  const [activeTab, setActiveTab] = useState<'study' | 'palaces' | 'import'>('study');
+  const [palaceFilter, setPalaceFilter] = useState('all');
+  const focusedCard = cards.find((card) => card.id === searchParams.get('recordId'));
+  const tab = focusedCard ? 'palaces' : activeTab;
+  const selectedPalace = focusedCard?.payload.palace ?? palaceFilter;
+  const setTab = (value: typeof activeTab) => {
+    setActiveTab(value);
+    if (focusedCard) setSearchParams({}, { replace: true });
+  };
+  const setSelectedPalace = (value: string) => {
+    setPalaceFilter(value);
+    setTab('palaces');
+  };
   const [flipped, setFlipped] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
 
@@ -395,10 +408,11 @@ export function MemoryPalaceModule() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {visibleCards.map((c) => (
+              {(focusedCard ? [focusedCard, ...visibleCards.filter((card) => card.id !== focusedCard.id)] : visibleCards).map((c) => (
                 <div
                   key={c.id}
-                  className="p-5 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-3"
+                  aria-current={c.id === focusedCard?.id ? 'true' : undefined}
+                  className="aria-[current=true]:ring-2 aria-[current=true]:ring-[#71C6BD] p-5 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-3"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div>

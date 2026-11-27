@@ -6,7 +6,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface EncyclopediaPayload {
   status: 'taslak' | 'yayinda';
@@ -24,7 +24,7 @@ export function EncyclopediaModule() {
     addModuleRecord,
     updateModuleRecord,
     deleteModuleRecord,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('kendi-ansiklopedim');

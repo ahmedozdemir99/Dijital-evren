@@ -28,13 +28,13 @@ import { evaluateMathExpression } from '../../modules/kozmos/MathLabModule.tsx';
 import { computeSolarReferenceTimes } from '../../modules/tekamul/PrayerJourneyModule.tsx';
 import type { Book, KnowledgeNode, ModuleRecord, Quote } from '../types/entities.ts';
 
-test('1-3-6-23 architecture: 3 domains, 6 centers, 23 unique active modules', () => {
+test('1-3-6-22 architecture: 3 domains, 6 centers, 22 unique active modules', () => {
   assert.equal(DOMAINS.length, 3);
   assert.equal(CENTERS.length, 6);
-  assert.equal(MODULES.length, 23);
+  assert.equal(MODULES.length, 22);
   const ids = new Set(MODULES.map((m) => m.id));
-  assert.equal(ids.size, 23);
-  assert.equal(EXISTING_APPS_LIST.length, 11);
+  assert.equal(ids.size, 22);
+  assert.equal(EXISTING_APPS_LIST.length, 10);
   assert.ok(MODULES.every((m) => m.status === 'active'));
 
   // Exact domain & center counts
@@ -43,13 +43,13 @@ test('1-3-6-23 architecture: 3 domains, 6 centers, 23 unique active modules', ()
   assert.equal(getCentersByDomain('yasam').length, 2);
   assert.equal(getModulesByDomain('zihin').length, 12);
   assert.equal(getModulesByDomain('kesif').length, 5);
-  assert.equal(getModulesByDomain('yasam').length, 6);
+  assert.equal(getModulesByDomain('yasam').length, 5);
   assert.equal(getModulesByCenter('irfan').length, 6);
   assert.equal(getModulesByCenter('idrak').length, 6);
   assert.equal(getModulesByCenter('kozmos').length, 3);
   assert.equal(getModulesByCenter('atolye').length, 2);
   assert.equal(getModulesByCenter('tekamul').length, 3);
-  assert.equal(getModulesByCenter('hayat').length, 3);
+  assert.equal(getModulesByCenter('hayat').length, 2);
 
   // Removed modules and merged tarih-simulatoru must not appear in active registry or feedsInto
   const retiredSet = new Set<string>([...LEGACY_REMOVED_MODULE_IDS, 'tarih-simulatoru']);
@@ -300,9 +300,9 @@ test('buildCalendarEvents aggregates dated books and module records respecting p
   const moduleRecords: ModuleRecord[] = [
     {
       id: 'r1',
-      moduleId: 'bizbize-riders',
-      entityType: 'ride',
-      title: 'Trabzon Sahil Sürüşü',
+      moduleId: 'karadeniz-asistani',
+      entityType: 'travel_spot',
+      title: 'Trabzon Sahil Rotası',
       category: 'Rota',
       tags: [],
       isFavorite: false,
@@ -400,4 +400,137 @@ test('computeSolarReferenceTimes formats valid HH:MM strings across full year wi
       }
     }
   }
+});
+
+test('all modules have distinct study activities', async () => {
+  const { MODULE_STUDIES } = await import('../registry/studies.ts');
+  assert.deepEqual(Object.keys(MODULE_STUDIES).sort(), MODULES.map(({ id }) => id).sort());
+  assert.equal(new Set(Object.values(MODULE_STUDIES).map(({ title }) => title)).size, 22);
+  assert.ok(Object.values(MODULE_STUDIES).every(({ steps }) => steps.length === 3));
+});
+
+test('search ranks Turkish titles, indexes record content, and excludes hidden source nodes', () => {
+  const records: ModuleRecord[] = [
+    { id: 'a1', moduleId: 'siir-deryasi', entityType: 'module_study', title: 'Şiir Okuması',
+      category: 'Atölye', tags: ['şiir'], isFavorite: false, isArchived: false, privacyDomain: 'genel',
+      payload: { body: 'İç içe imgeler', apiToken: 'buaranmamali' }, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+    { id: 'a2', moduleId: 'siir-deryasi', entityType: 'poem', title: 'Gizli çalışma',
+      category: 'Atölye', tags: [], isFavorite: false, isArchived: false, privacyDomain: 'kisisel',
+      payload: { hideFromGlobalSearch: true }, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  ];
+  const data = {
+    books: [], quotes: [], quickNotes: [], moduleSettings: [], moduleRecords: records, preferences: DEFAULT_PREFERENCES,
+    knowledgeNodes: [{ id: 'a2-node', title: 'Gizli çalışma', nodeType: 'kavram' as const,
+      sourceModule: records[1].moduleId, sourceEntityId: 'a2', summary: '', tags: [], x: 1, y: 2,
+      createdAt: '2026-01-01', updatedAt: '2026-01-01' }],
+  };
+  assert.equal(searchEcosystem('siir okumasi', data)[0]?.id, 'a1');
+  assert.equal(searchEcosystem('imgeler siir', data)[0]?.route, '/modul/siir-deryasi/calisma?workspaceId=a1');
+  assert.equal(searchEcosystem('gizli calisma', data).length, 0);
+  assert.equal(searchEcosystem('buaranmamali', data).length, 0);
+  assert.equal(searchEcosystem('siir', data, { dateFrom: '2026-01-02' }).length, 0);
+});
+
+test('external source adapters preserve native formats and repeatable identities', async () => {
+  const { prepareExternalImport } = await import('../services/externalImports.ts');
+  const fixtures: Record<string, unknown> = {
+    'dijital-kutuphanem': { userBooks: [{ id: 'a', title: 'Roman', status: 'reading', currentPage: 27 }] },
+    'alinti-defterim': { quotes: [{ text: 'Bir cümle', book: 'Bir kitap', page: '25' }], dictionary: [{ word: 'Yol', meaning: 'Yöntem' }] },
+    'sohbet-arsivi': { SA_FAVS: ['one'] },
+    'siir-deryasi': { app: 'siir-deryasi', ownPoems: [{ id: 'own', title: 'Şiir', text: 'Bir dize' }] },
+    automusicpro: { app: 'AutoMusic Pro 4', data: { playlists: [{ name: 'Akşam' }] } },
+    'tekamul-yolunda': { version: 5, tasks: {}, journal: [{ id: 'a', title: 'Gün', content: 'Not' }] },
+    'mihrap-ve-minber': { version: 5, completed: { a: true } },
+    'namaz-yolculugum': { fatiha: 'done' },
+    'bugun-ne-yesem': { version: 1, staples: false, selected: ['limon'], custom: [], favorites: [], shopping: [] },
+  };
+  for (const app of EXISTING_APPS_LIST) {
+    if (!fixtures[app.appId]) {
+      await assert.rejects(prepareExternalImport(app, '{}'), /desteklenen kayıt bulunamadı/);
+      continue;
+    }
+    const content = JSON.stringify(fixtures[app.appId]);
+    const parsed = await prepareExternalImport(app, content);
+    const repeated = await prepareExternalImport(app, content);
+    const ids = (data: typeof parsed) => [...data.books, ...data.quotes, ...data.records].map((item) => item.id);
+    assert.ok(ids(parsed).length > 0, app.appId);
+    assert.deepEqual(ids(parsed), ids(repeated));
+    if (app.appId === 'dijital-kutuphanem') assert.equal(parsed.books[0].status, 'okunuyor');
+  }
+});
+
+test('assistant rejects unsigned and unauthorized requests before contacting Gemini', async (t) => {
+  const { onRequestPost } = await import('../../../functions/api/ai/assist.ts');
+  const env = { GEMINI_API_KEY: 'test', SUPABASE_URL: 'https://example.invalid',
+    SUPABASE_PUBLISHABLE_KEY: 'test', AI_ALLOWED_USER_IDS: 'allowed' };
+  const url = 'https://local.invalid/api/ai/assist';
+  const noToken = await onRequestPost({ request: new Request(url, { method: 'POST' }), env });
+  assert.equal(noToken.status, 401);
+  assert.equal(noToken.headers.get('cache-control'), 'no-store');
+  assert.equal((await onRequestPost({ request: new Request(url, { method: 'POST' }), env: {} })).status, 503);
+  const stub = t.mock.method(globalThis, 'fetch', async () => Response.json({ id: 'another-user' }));
+  const denied = await onRequestPost({ request: new Request(url, {
+    method: 'POST', headers: { Authorization: 'Bearer test' },
+  }), env });
+  assert.equal(denied.status, 403);
+  assert.equal(stub.mock.callCount(), 1);
+});
+
+test('assistant validates a Supabase session and forwards only bounded, text-only context', async (t) => {
+  const { onRequestPost } = await import('../../../functions/api/ai/assist.ts');
+  const env = { GEMINI_API_KEY: 'provider-key', SUPABASE_URL: 'https://project.example.invalid',
+    SUPABASE_PUBLISHABLE_KEY: 'publishable-key', AI_ALLOWED_USER_IDS: 'owner' };
+  const seen: string[] = [];
+  t.mock.method(globalThis, 'fetch', async (input: string | URL, options: RequestInit) => {
+    seen.push(String(input));
+    if (seen.length === 1) {
+      assert.equal(new Headers(options.headers).get('Authorization'), 'Bearer session');
+      return Response.json({ id: 'owner' });
+    }
+    assert.equal(new Headers(options.headers).get('Authorization'), null);
+    const sent = JSON.parse(String(options.body));
+    assert.equal(sent.contents.length, 7);
+    assert.equal(sent.contents[0].parts[0].text.length, 1500);
+    assert.ok(sent.contents.at(-1).parts[0].text.endsWith('Bir soru'));
+    return Response.json({ candidates: [{ content: { parts: [
+      { text: 'internal thought', thought: true }, { text: 'Türkçe yanıt' },
+    ] } }] });
+  });
+  const request = new Request('https://local.invalid/api/ai/assist', {
+    method: 'POST', headers: { Authorization: 'Bearer session', 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: 'Bir soru', history: Array.from({ length: 8 }, () => ({ role: 'user', text: 'x'.repeat(1700) })) }),
+  });
+  const response = await onRequestPost({ request, env });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).reply, 'Türkçe yanıt');
+  assert.deepEqual(seen, [
+    'https://project.example.invalid/auth/v1/user',
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent',
+  ]);
+});
+
+test('retired module data and derived records stay in raw backups and leave the active knowledge network', async () => {
+  const { activeSnapshot, DEFAULT_PROFILE } = await import('../repositories/ecosystemRepository.ts');
+  const base = { entityType: 'note', title: 'Kayıt', category: 'Not', tags: [], isFavorite: false,
+    isArchived: false, privacyDomain: 'genel' as const, payload: {}, createdAt: '2026-01-01', updatedAt: '2026-01-01' };
+  const moduleRecords = [
+    { ...base, id: 'ride', moduleId: 'bizbize-riders' },
+    { ...base, id: 'watch', moduleId: 'akilli-bileklik' },
+    { ...base, id: 'reflection', moduleId: 'tekamul-yolunda', sourceEntityId: 'ride', sourceModule: 'bizbize-riders' },
+    { ...base, id: 'other', moduleId: 'tekamul-yolunda' },
+  ];
+  const knowledgeNodes = [{ id: 'derived-node', title: 'Tefekkür kavramı', nodeType: 'kavram' as const,
+    summary: '', sourceModule: 'tekamul-yolunda', sourceEntityId: 'reflection', tags: [], x: 0, y: 0,
+    createdAt: base.createdAt, updatedAt: base.updatedAt }];
+  const snapshot = {
+    profile: DEFAULT_PROFILE, preferences: DEFAULT_PREFERENCES, moduleSettings: [], externalApps: [],
+    books: [], quotes: [], knowledgeNodes, entityRelations: [], quickNotes: [], moduleRecords,
+    collections: [], attachments: [], activityLogs: [], notifications: [],
+  };
+  const active = activeSnapshot(snapshot);
+  assert.deepEqual(active.moduleRecords.map((record) => record.id), ['other']);
+  assert.deepEqual(active.knowledgeNodes, []);
+  assert.ok(active.retiredEntityIds.has('derived-node'));
+  assert.equal(snapshot.moduleRecords.length, 4);
+  assert.equal(snapshot.knowledgeNodes.length, 1);
 });

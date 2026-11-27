@@ -1,3 +1,4 @@
+import { requestAssistant } from '../../core/services/supabaseAdapter';
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -13,7 +14,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface PhilosophyPayload {
   kind: 'philosopher' | 'dilemma' | 'thought_experiment' | 'fictional_letter';
@@ -35,7 +36,7 @@ export function PhilosophyCouncilModule() {
     recordModuleOpen,
     addModuleRecord,
     deleteModuleRecord,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('felsefe-meclisi');
@@ -127,13 +128,9 @@ export function PhilosophyCouncilModule() {
     if (preferences.aiAssistantEnabled && preferences.aiPermittedDomains.genel) {
       setAiBusy(true);
       try {
-        const res = await fetch('/api/ai/assist', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        const res = await requestAssistant({
             prompt: `Sokratik yöntemle aşağıdaki felsefi soruya karşı sorular sor ve kavramları netleştir. Kurgusal bir filozof sesi takınıyorsan bunun hayalî simülasyon olduğunu açıkça belirt.\nKonu: ${socraticTopic || 'Genel Felsefe'}\nSoru: ${question}`,
             contextSummary: 'Felsefe Meclisi Sokratik Çalışma Alanı',
-          }),
         });
         const data = await res.json();
         setSocraticLog((prev) => [

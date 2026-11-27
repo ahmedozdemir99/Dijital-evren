@@ -1,3 +1,5 @@
+import { isRetiredReference } from '../core/repositories/ecosystemRepository';
+import { getRecordRoute } from '../core/services/integrationService';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FolderHeart, Plus, Star, Trash2, X } from 'lucide-react';
@@ -13,6 +15,7 @@ export function CollectionsPage() {
     moduleRecords,
     moduleSettings,
     collections,
+    retiredEntityIds,
     addCollection,
     deleteCollection,
     removeItemFromCollection,
@@ -117,7 +120,7 @@ export function CollectionsPage() {
               favRecords.map((r) => (
                 <Link
                   key={r.id}
-                  to={`/modul/${r.moduleId}?recordId=${r.id}`}
+                  to={getRecordRoute(r.moduleId, r.id, r.entityType)}
                   className="block text-[#88B4FF] hover:underline truncate"
                 >
                   {r.title}
@@ -204,20 +207,15 @@ export function CollectionsPage() {
                 </button>
               </div>
 
-              {col.items.length === 0 ? (
+              {!col.items.some((item) => !isRetiredReference(item.moduleId, item.entityId, retiredEntityIds)) ? (
                 <p className="text-xs text-[#546070] dark:text-[#9BA7B6]">
                   Henüz öğe eklenmedi. Herhangi bir modülde "Koleksiyona Ekle" butonunu kullanabilirsiniz.
                 </p>
               ) : (
                 <div className="space-y-1.5 text-xs">
-                  {col.items.map((item) => {
+                  {col.items.filter((item) => !isRetiredReference(item.moduleId, item.entityId, retiredEntityIds)).map((item) => {
                     const modName = getModuleById(item.moduleId)?.name ?? item.moduleId;
-                    const targetRoute =
-                      item.moduleId === 'dijital-kutuphanem'
-                        ? `/modul/dijital-kutuphanem?bookId=${item.entityId}`
-                        : item.moduleId === 'alinti-defterim'
-                          ? `/modul/alinti-defterim?quoteId=${item.entityId}`
-                          : `/modul/${item.moduleId}?recordId=${item.entityId}`;
+                    const targetRoute = getRecordRoute(item.moduleId, item.entityId, item.entityType);
                     return (
                       <div
                         key={item.entityId}

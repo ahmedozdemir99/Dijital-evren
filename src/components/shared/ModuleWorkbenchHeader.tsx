@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import {
   Download,
@@ -52,7 +53,6 @@ export function ModuleWorkbenchHeader({
 
   const moduleLogs = activityLogs.filter((l) => l.moduleId === moduleId).slice(0, 15);
   const showDemo = (setting?.customSettings?.showDemo as boolean | undefined) ?? true;
-  const compactView = (setting?.customSettings?.compactView as boolean | undefined) ?? false;
 
   const handleExportJson = async () => {
     const bundle = await exportBundle(moduleId);
@@ -139,6 +139,7 @@ export function ModuleWorkbenchHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <Link to={mod.route + '/calisma'} className="inline-flex min-h-11 items-center rounded-lg border border-current/20 px-3 text-sm hover:bg-black/5 dark:hover:bg-white/5">Çalışma defteri</Link>
           {extraActions}
 
           <button
@@ -309,16 +310,6 @@ export function ModuleWorkbenchHeader({
                   }
                 />
                 <span>Demo başlangıç kayıtlarını göster</span>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={compactView}
-                  onChange={(e) =>
-                    updateModuleCustomSetting(moduleId, { compactView: e.target.checked })
-                  }
-                />
-                <span>Sıkışık liste görünümü</span>
               </label>
             </div>
           )}

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { FolderPlus, Link2, Network, Paperclip, X } from 'lucide-react';
 import { MODULES } from '../../core/registry/modules';
-import { getRelationsForEntity, isSafeDataUrl } from '../../core/services/integrationService';
+import { getRecordRoute, getRelationsForEntity, isSafeDataUrl } from '../../core/services/integrationService';
 import type { KnowledgeNodeType, PrivacyDomain, RelationType } from '../../core/types/entities';
 import { useAppStore } from '../../store/useAppStore';
 
@@ -27,6 +27,7 @@ export function RecordActionsBar({
 }: RecordActionsBarProps) {
   const {
     entityRelations,
+    moduleRecords,
     collections,
     attachments,
     knowledgeNodes,
@@ -44,6 +45,8 @@ export function RecordActionsBar({
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const relations = getRelationsForEntity(entityId, entityRelations);
+  const atlasNode = knowledgeNodes.find((node) => node.sourceModule === moduleId && node.sourceEntityId === entityId);
+  const targets = knowledgeNodes.filter((node) => (node.sourceEntityId ?? node.id) !== entityId);
   const linkedAttachments = attachments.filter((a) =>
     a.linkedRefs.some((r) => r.entityId === entityId)
   );
@@ -66,8 +69,10 @@ export function RecordActionsBar({
 
   const handleCreateRelation = async (e: React.FormEvent) => {
     e.preventDefault();
-    const target = knowledgeNodes.find((n) => n.id === targetNodeId);
-    if (!target) return;
+    const target = targets.find((node) => node.id === targetNodeId);
+    if (!target || relations.some((relation) =>
+      relation.fromEntityId === entityId && relation.toEntityId === (target.sourceEntityId ?? target.id) &&
+      relation.relationType === relationType)) return;
     await linkEntities({
       fromModule: moduleId,
       fromEntityId: entityId,
@@ -115,14 +120,15 @@ export function RecordActionsBar({
   return (
     <div className="pt-3 border-t border-black/10 dark:border-white/10 space-y-3">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        <button
+        {atlasNode ? <Link className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-current/20 px-2.5"
+          to={getRecordRoute('zihin-atlasi', atlasNode.id)}><Network className="h-4 w-4" /> Zihin Atlasında aç</Link> : <button
           type="button"
           onClick={handleSendToAtlas}
           className="h-8 inline-flex items-center justify-center gap-1.5 px-2.5 rounded-lg border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 whitespace-nowrap shrink-0"
         >
           <Network className="w-3.5 h-3.5 text-[#71C6BD] shrink-0" />
           <span>Zihin Atlasına Bağla</span>
-        </button>
+        </button>}
 
         <button
           type="button"
@@ -164,20 +170,21 @@ export function RecordActionsBar({
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
-          {relations.map((r) => (
-            <div key={r.id} className="flex items-center justify-between gap-2">
-              <span className="truncate">
-                {r.fromLabel} → <span className="text-[#71C6BD]">{r.relationType}</span> → {r.toLabel}
-              </span>
-              <button
-                type="button"
-                onClick={() => deleteRelation(r.id)}
-                className="text-red-400 hover:underline shrink-0"
-              >
-                Kaldır
-              </button>
-            </div>
-          ))}
+          {relations.map((relation) => {
+            const incoming = relation.toEntityId === entityId;
+            const id = incoming ? relation.fromEntityId : relation.toEntityId;
+            const targetModule = incoming ? relation.fromModule : relation.toModule;
+            const label = incoming ? relation.fromLabel : relation.toLabel;
+            const record = moduleRecords.find((entry) => entry.id === id && entry.moduleId === targetModule);
+            const route = MODULES.some((module) => module.id === targetModule) ? getRecordRoute(targetModule, id, record?.entityType) : null;
+            return <div key={relation.id} className="flex items-start justify-between gap-2">
+              <div className="min-w-0 break-words">
+                <span className="text-[#546070] dark:text-[#9BA7B6]">{incoming ? 'Gelen' : 'Giden'} · {relation.relationType.replaceAll('_', ' ')} · </span>
+                {route ? <Link className="underline" to={route}>{record?.title ?? label}</Link> : label}
+              </div>
+              <button type="button" onClick={() => deleteRelation(relation.id)} className="shrink-0 text-red-600 hover:underline dark:text-red-400">Kaldır</button>
+            </div>;
+          })}
           <form onSubmit={handleCreateRelation} className="flex flex-wrap items-center gap-2">
             <select
               value={targetNodeId}
@@ -185,7 +192,7 @@ export function RecordActionsBar({
               className="flex-1 min-w-[160px] h-8 px-2.5 rounded-lg bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10"
             >
               <option value="">Zihin Atlasından hedef seç...</option>
-              {knowledgeNodes.map((n) => (
+              {targets.map((n) => (
                 <option key={n.id} value={n.id}>
                   {n.title} ({n.nodeType})
                 </option>

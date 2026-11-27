@@ -1,3 +1,4 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Circle, Flame, Lock, Plus, Sprout, Target, Trash2 } from 'lucide-react';
 import { ConfirmDialog } from '../../components/common/ConfirmDialog';
@@ -5,7 +6,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface GrowthPayload {
   kind: 'habit' | 'goal' | 'reflection';
@@ -16,6 +17,8 @@ interface GrowthPayload {
 }
 
 export function SelfGrowthModule() {
+  const [searchParams] = useSearchParams();
+  const activeRecordId = searchParams.get('recordId');
   const {
     moduleRecords,
     preferences,
@@ -23,7 +26,7 @@ export function SelfGrowthModule() {
     addModuleRecord,
     updateModuleRecord,
     deleteModuleRecord,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('tekamul-yolunda');
@@ -52,6 +55,10 @@ export function SelfGrowthModule() {
   const habits = records.filter((r) => r.payload.kind === 'habit');
   const goals = records.filter((r) => r.payload.kind === 'goal');
   const reflections = records.filter((r) => r.payload.kind === 'reflection');
+
+  useEffect(() => {
+    if (activeRecordId) document.getElementById('growth-' + activeRecordId)?.scrollIntoView({ block: 'center' });
+  }, [activeRecordId, records]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,7 +175,7 @@ export function SelfGrowthModule() {
               {habits.map((h) => {
                 const done = (h.payload.completedDates ?? []).includes(today);
                 return (
-                  <div key={h.id} className="p-3 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] flex items-center justify-between gap-2">
+                  <div key={h.id} id={'growth-' + h.id} aria-current={activeRecordId === h.id ? 'true' : undefined} className="aria-[current=true]:ring-2 aria-[current=true]:ring-[#93BF90] p-3 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] flex items-center justify-between gap-2">
                     <button
                       type="button"
                       onClick={() => toggleHabitToday(h)}
@@ -216,7 +223,7 @@ export function SelfGrowthModule() {
               {goals.map((g) => {
                 const val = g.payload.currentValue ?? 0;
                 return (
-                  <div key={g.id} className="p-3.5 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] space-y-2 text-xs">
+                  <div key={g.id} id={'growth-' + g.id} aria-current={activeRecordId === g.id ? 'true' : undefined} className="aria-[current=true]:ring-2 aria-[current=true]:ring-[#93BF90] p-3.5 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] space-y-2 text-xs">
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-semibold text-sm">{g.title}</span>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -260,7 +267,7 @@ export function SelfGrowthModule() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {reflections.map((ref) => (
-              <div key={ref.id} className="p-4 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] space-y-2 text-xs">
+              <div key={ref.id} id={'growth-' + ref.id} aria-current={activeRecordId === ref.id ? 'true' : undefined} className="aria-[current=true]:ring-2 aria-[current=true]:ring-[#93BF90] p-4 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] space-y-2 text-xs">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-sm">{ref.title}</span>
                   <button

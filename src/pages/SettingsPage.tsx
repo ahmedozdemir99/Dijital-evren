@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Check, Download, RotateCcw, Trash2, Upload } from 'lucide-react';
+import { CloudBackupPanel } from '../components/shared/CloudBackupPanel';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import {
   CURRENT_SCHEMA_VERSION,
@@ -485,6 +486,8 @@ export function SettingsPage() {
         </div>
       </section>
 
+      <CloudBackupPanel />
+
       {/* 5. Yedekleme, Geri Yükleme ve Veri Silme */}
       <section className="p-6 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-5">
         <div>
@@ -632,9 +635,7 @@ export function SettingsPage() {
         <div className="pt-4 border-t border-black/10 dark:border-white/10 text-xs text-[#546070] dark:text-[#9BA7B6] space-y-1">
           <p className="font-semibold text-[#141923] dark:text-[#F1F3F5]">Sistem Bilgisi ve Sürüm Notları</p>
           <p>
-            v3.1 — 3 Ana Alan, 6 Tematik Merkez ve 23 İşlevsel Modül yapısı etkinleştirildi;
-            Tarih Atlası ve Simülatörü tek modülde birleştirildi, Akıllı Bileklik kapsam dışı bırakılarak mevcut kayıtları arşivlendi; IndexedDB v3 şeması, Ortak Takvim,
-            Koleksiyonlar, Dosya/Medya Merkezi ve çevrimdışı PWA desteği aktif.
+            Üç ana alan, altı merkez ve {MODULES.length} aktif modül. Kapsam dışı kayıtları arşiv yedeği olarak indirebilirsiniz.
           </p>
         </div>
       </section>

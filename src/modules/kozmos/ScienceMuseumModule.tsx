@@ -5,7 +5,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface SciencePayload {
   discipline: 'Fizik' | 'Kimya' | 'Biyoloji' | 'Astronomi' | 'Teknoloji';
@@ -24,7 +24,7 @@ export function ScienceMuseumModule() {
     recordModuleOpen,
     addModuleRecord,
     deleteModuleRecord,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('bilim-muzesi');

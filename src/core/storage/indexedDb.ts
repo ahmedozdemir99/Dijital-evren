@@ -136,3 +136,102 @@ export async function clearStore(storeName: StoreName): Promise<void> {
     tx.onerror = () => reject(tx.error ?? new Error(`${storeName} temizlenemedi.`));
   });
 }
+
+interface MergeEntry {
+  store: StoreName;
+  keyPath: string;
+  items: unknown[];
+}
+
+function recordTimestamp(record: Record<string, unknown>): string {
+  const value = record.updatedAt ?? record.createdAt ?? record.lastSyncAt ?? record.lastTestAt;
+  return typeof value === 'string' && Number.isFinite(Date.parse(value)) ? new Date(value).toISOString() : '';
+}
+
+export async function mergeLatestRecords(entries: MergeEntry[]): Promise<void> {
+  if (!entries.length) return;
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(entries.map(({ store }) => store), 'readwrite');
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error ?? new Error('Eşitleme geri alındı.'));
+    for (const { store, keyPath, items } of entries) {
+      const target = tx.objectStore(store);
+      for (const value of items) {
+        if (!value || typeof value !== 'object') continue;
+        const incoming = value as Record<string, unknown>;
+        const key = incoming[keyPath];
+        if (typeof key !== 'string' || !key) continue;
+        const request = target.get(key);
+        request.onsuccess = () => {
+          const current = request.result as Record<string, unknown> | undefined;
+          if (!current || recordTimestamp(incoming) > recordTimestamp(current)) {
+            target.put(incoming);
+          }
+        };
+      }
+    }
+  });
+}
+
+export async function insertNewRecords(entries: Array<{ store: StoreName; items: { id: string }[] }>): Promise<number> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(entries.map(({ store }) => store), 'readwrite');
+    let added = 0;
+    tx.oncomplete = () => resolve(added);
+    tx.onabort = () => reject(tx.error ?? new Error('İçe aktarma geri alındı.'));
+    for (const { store, items } of entries) {
+      const target = tx.objectStore(store);
+      for (const item of new Map(items.map((record) => [record.id, record])).values()) {
+        const request = target.getKey(item.id);
+        request.onsuccess = () => {
+          if (request.result === undefined) {
+            target.add(item);
+            added += 1;
+          }
+        };
+      }
+    }
+  });
+}
+
+interface RestoreEntry {
+  store: StoreName;
+  items: unknown[];
+  matches?: (item: Record<string, unknown>) => boolean;
+}
+
+export async function restoreRecords(entries: RestoreEntry[]): Promise<void> {
+  const db = await openDatabase();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(entries.map(({ store }) => store), 'readwrite');
+    tx.oncomplete = () => resolve();
+    tx.onabort = () => reject(tx.error ?? new Error('Yedek geri yükleme işlemi geri alındı.'));
+    for (const { store, items, matches } of entries) {
+      const target = tx.objectStore(store);
+      const put = () => {
+        try {
+          for (const item of items) target.put(item);
+        } catch {
+          tx.abort();
+        }
+      };
+      if (matches) {
+        const request = target.openCursor();
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) {
+            put();
+            return;
+          }
+          if (matches(cursor.value)) cursor.delete();
+          cursor.continue();
+        };
+      } else {
+        target.clear();
+        put();
+      }
+    }
+  });
+}

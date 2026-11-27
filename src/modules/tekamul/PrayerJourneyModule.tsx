@@ -1,9 +1,10 @@
+import { useSearchParams } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { Calendar, CheckCircle2, Circle, Clock, Lock } from 'lucide-react';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface PrayerDayPayload {
   date: string;
@@ -56,7 +57,8 @@ export function computeSolarReferenceTimes(dateStr: string, lat: number, lng: nu
 }
 
 export function PrayerJourneyModule() {
-  const { moduleRecords, recordModuleOpen, addModuleRecord, updateModuleRecord } = useAppStore();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { moduleRecords, recordModuleOpen, addModuleRecord, updateModuleRecord } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('namaz-yolculugum');
@@ -70,7 +72,14 @@ export function PrayerJourneyModule() {
     [moduleRecords]
   );
 
-  const [selectedDate, setSelectedDate] = useState(() => localDateIso());
+  const [calendarDate, setCalendarDate] = useState(() => localDateIso());
+  const linkedRecord = records.find((record) => record.id === searchParams.get('recordId'));
+  const selectedDate = linkedRecord?.payload.date || calendarDate;
+  const setSelectedDate = (value: string) => {
+    if (!value) return;
+    setCalendarDate(value);
+    if (searchParams.has('recordId')) setSearchParams({}, { replace: true });
+  };
   const [cityPreset, setCityPreset] = useState<'trabzon' | 'istanbul' | 'ankara'>('trabzon');
 
   const coords =
@@ -132,7 +141,7 @@ export function PrayerJourneyModule() {
       <div className="p-3.5 rounded-xl bg-[#93BF90]/12 border border-[#93BF90]/35 flex items-center gap-2.5 text-xs">
         <Lock className="w-4 h-4 text-[#93BF90] shrink-0" />
         <span>
-          <strong>Özel İbadet Alanı:</strong> Bu modül `ibadet` gizlilik katmanındadır. Kayıtlarınız yalnızca sizin cihazınızda saklanır ve izniniz olmadan Tekâmül Yolunda veya genel aramayla paylaşılmaz.
+          <strong>Özel İbadet Alanı:</strong> Bu modül `ibadet` gizlilik katmanındadır. Yerel kayıtlar, siz bulut eşitlemesini başlattığınızda hesabınıza yüklenir. Modüller arası paylaşım ve arama erişimini Ayarlar’dan yönetebilirsiniz.
         </span>
       </div>
 

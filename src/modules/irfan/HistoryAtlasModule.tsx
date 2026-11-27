@@ -16,7 +16,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 type HistoryRecordKind =
   | 'event'
@@ -94,7 +94,7 @@ export function HistoryAtlasModule() {
     recordModuleOpen,
     addModuleRecord,
     deleteModuleRecord,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('tarih-atlasi');

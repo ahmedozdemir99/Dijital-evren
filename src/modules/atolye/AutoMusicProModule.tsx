@@ -5,7 +5,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface MusicPayload {
   bpm: number;
@@ -24,7 +24,7 @@ const SCALE_FREQS: Record<string, Record<string, number>> = {
 export function AutoMusicProModule() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { moduleRecords, recordModuleOpen, addModuleRecord, updateModuleRecord, deleteModuleRecord } =
-    useAppStore();
+    useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('automusicpro');

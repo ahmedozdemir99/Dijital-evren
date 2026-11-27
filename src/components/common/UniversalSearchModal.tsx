@@ -33,6 +33,9 @@ export function UniversalSearchModal() {
   const [moduleFilter, setModuleFilter] = useState('all');
   const [kindFilter, setKindFilter] = useState('all');
   const [tagFilter, setTagFilter] = useState('');
+  const [category, setCategory] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -56,12 +59,16 @@ export function UniversalSearchModal() {
       setModuleFilter('all');
       setKindFilter('all');
       setTagFilter('');
+      setCategory('');
+      setDateFrom('');
+      setDateTo('');
       setSelectedIndex(0);
       setTimeout(() => inputRef.current?.focus(), 20);
     }
   }, [searchOpen]);
 
   const results = useMemo(() => {
+    if (!searchOpen) return [];
     return searchEcosystem(
       query,
       {
@@ -77,6 +84,8 @@ export function UniversalSearchModal() {
         moduleId: moduleFilter,
         kind: kindFilter,
         tag: tagFilter.trim() || undefined,
+        category: category.trim() || undefined,
+        dateFrom, dateTo,
       }
     );
   }, [
@@ -90,12 +99,16 @@ export function UniversalSearchModal() {
     preferences,
     moduleFilter,
     kindFilter,
-    tagFilter,
+    tagFilter, category, dateFrom, dateTo, searchOpen,
   ]);
 
   useEffect(() => {
     setSelectedIndex(0);
-  }, [query, moduleFilter, kindFilter, tagFilter]);
+  }, [query, moduleFilter, kindFilter, tagFilter, category, dateFrom, dateTo]);
+
+  useEffect(() => {
+    if (searchOpen) document.getElementById('search-result-' + selectedIndex)?.scrollIntoView({ block: 'nearest' });
+  }, [searchOpen, selectedIndex]);
 
   if (!searchOpen) return null;
 
@@ -146,11 +159,11 @@ export function UniversalSearchModal() {
   };
 
   const hasActiveFilter =
-    moduleFilter !== 'all' || kindFilter !== 'all' || tagFilter.trim().length > 0;
+    moduleFilter !== 'all' || kindFilter !== 'all' || Boolean(tagFilter.trim() || category.trim() || dateFrom || dateTo);
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-start justify-center pt-[8vh] px-4 bg-black/60 backdrop-blur-xs"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto pt-[min(8vh,3rem)] px-3 pb-4 bg-black/60 backdrop-blur-xs"
       role="dialog"
       aria-modal="true"
       aria-label="Evrensel Arama"
@@ -164,6 +177,9 @@ export function UniversalSearchModal() {
           <Search className="w-4 h-4 text-[#546070] dark:text-[#9BA7B6] shrink-0" />
           <input
             ref={inputRef}
+            aria-label="Arama metni"
+            aria-controls="universal-search-results"
+            maxLength={180}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -174,6 +190,7 @@ export function UniversalSearchModal() {
           <button
             type="button"
             onClick={() => setShowFilters((v) => !v)}
+            aria-expanded={showFilters || hasActiveFilter}
             className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs border transition-colors ${
               showFilters || hasActiveFilter
                 ? 'border-[#8C6B32] dark:border-[#D6B782] text-[#8C6B32] dark:text-[#D6B782]'
@@ -231,10 +248,20 @@ export function UniversalSearchModal() {
               placeholder="Etiket ile süz (ör. şiir)..."
               className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10"
             />
+            <input type="text" value={category} onChange={(e) => setCategory(e.target.value)}
+              aria-label="Kategori filtresi" placeholder="Kategori" className="rounded-lg border border-current/15 bg-transparent px-2.5 py-2" />
+            <label className="grid gap-1">Başlangıç tarihi
+              <input type="date" value={dateFrom} max={dateTo || undefined} onChange={(e) => setDateFrom(e.target.value)}
+                className="w-full rounded-lg border border-current/15 bg-transparent px-2.5 py-2" />
+            </label>
+            <label className="grid gap-1">Bitiş tarihi
+              <input type="date" value={dateTo} min={dateFrom || undefined} onChange={(e) => setDateTo(e.target.value)}
+                className="w-full rounded-lg border border-current/15 bg-transparent px-2.5 py-2" />
+            </label>
           </div>
         )}
 
-        <div className="max-h-[55vh] overflow-y-auto divide-y divide-black/5 dark:divide-white/5">
+        <div id="universal-search-results" className="max-h-[50dvh] overflow-y-auto divide-y divide-black/5 dark:divide-white/5">
           {query.trim() === '' && !hasActiveFilter ? (
             <div className="p-6 text-center space-y-1.5">
               <p className="text-sm text-[#141923] dark:text-[#F1F3F5]">
@@ -252,6 +279,7 @@ export function UniversalSearchModal() {
             results.map((item, idx) => (
               <button
                 key={`${item.kind}-${item.id}`}
+                id={`search-result-${idx}`}
                 type="button"
                 onClick={() => handleSelect(item)}
                 className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${
