@@ -1,3 +1,4 @@
+import { growthHabits } from '../../integrations/shared/importedData';
 import { ACADEMY_BACKUP_TYPE, readAcademyBackup } from '../../integrations/mihrap/progress';
 import { getModuleById } from '../registry/modules';
 import type { Book, BookStatus, ExternalAppConfig, ModuleRecord, Quote } from '../types/entities';
@@ -13,15 +14,15 @@ export interface ExternalImport {
 
 export const SOURCE_IMPORTS: Record<string, { hint: string; live?: string; file?: boolean }> = {
   'dijital-kutuphanem': { hint: 'Kütüphanedeki JSON yedeği veya kitap CSV dosyası.', file: true },
-  'alinti-defterim': { hint: 'Alıntı ve Lügat JSON yedeği. Alıntılar deftere, sözlük kartları Kelime Müzesindeki çalışma defterine aktarılır.', file: true },
+  'alinti-defterim': { hint: 'Alıntı ve Lügat JSON yedeği. Alıntılar Alıntı Defterine, sözlük kartları Kelime Müzesine aktarılır.', file: true },
   'sohbet-arsivi': { hint: 'Kaynak tarayıcıdaki favori, izleme ilerlemesi ve not verileri JSON olarak alınabilir (SA_FAVS, SA_PROGRESS, SA_NOTES).', live: 'https://sohbet-arsivi-e1701a.toughtamarind.chatgpt.site', file: true },
-  'siir-deryasi': { hint: 'Defterim ekranındaki JSON yedeği. Kişisel şiirler şiir listesine eklenir.', file: true },
-  'automusicpro': { hint: 'Genel Ayarlar ekranından AutoMusic Pro 4 JSON yedeği. Çalma listeleri ritim sekanslarıyla aynı biçimde olmadığı için çalışma defterinde açılır.', file: true },
-  'tekamul-yolunda': { hint: 'Tekâmül JSON yedeği. Günlük yazıları tefekkür kayıtlarına eklenir.', file: true },
+  'siir-deryasi': { hint: 'Defterim ekranındaki JSON yedeği. Kişisel şiirler, favori işaretleri ve notlarıyla şiir listesine eklenir.', file: true },
+  'automusicpro': { hint: 'Genel Ayarlar ekranından AutoMusic Pro 4 JSON yedeği. Çalma listeleri ve favoriler entegre oynatıcıda açılır.', file: true },
+  'tekamul-yolunda': { hint: 'Tekâmül JSON yedeği. Günlük yazıları ve tarihli alışkanlık işaretleri Tekâmül modülüne eklenir.', file: true },
   'mihrap-ve-minber': { hint: 'Akademi Yedek ekranındaki JSON dosyası. Ders ilerlemesi ve notlar gömülü Akademi ekranında açılır.', live: 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site', file: true },
-  'namaz-yolculugum': { hint: 'Kaynak tarayıcıdaki namaz-yolculugum:ezber verisi JSON olarak çalışma defterine alınabilir.', live: 'https://namaz-yolculugum.toughtamarind.chatgpt.site', file: true },
+  'namaz-yolculugum': { hint: 'Kaynak tarayıcıdaki namaz-yolculugum:ezber verisi JSON olarak ezber çizelgesine alınabilir.', live: 'https://namaz-yolculugum.toughtamarind.chatgpt.site', file: true },
   'bugun-ne-yesem': { hint: 'Malzemeler, favori tarif kimlikleri ve alışveriş listesi içeren mutfak JSON yedeği.', live: 'https://bugun-ne-yesem-mutfak.toughtamarind.chatgpt.site', file: true },
-  'karadeniz-asistani': { hint: 'Kaynak uygulama rotaları kalıcı olarak saklamıyor. Veri aktarımı için kaynak uygulamanın bir dışa aktarma uç noktası sunması gerekiyor.' },
+  'karadeniz-asistani': { hint: 'Canlı rota, hava ve deniz tahmini. Kaynak uygulama rota verisini oturum sonunda saklamıyor.' },
 };
 
 const object = (value: unknown): Row | undefined => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Row : undefined;
@@ -68,15 +69,15 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
       payload, createdAt: now, updatedAt: now, ...options,
     });
   };
-  const addQuotes = async (source: unknown) => {
+  const addQuotes = async (source: unknown, bookIds = new Map<string, string>()) => {
     for (const row of rows(source)) {
-      const quote = text(row.text);
+      const quote = text(row.text ?? row.quoteText);
       if (!quote) continue;
       const author = text(row.author) || 'Bilinmeyen';
       const sourceTitle = text(row.sourceTitle || row.book || row.bookTitle) || app.name;
       result.quotes.push({
         id: await importId(app.appId + '-quote', row.id ?? [quote, author, sourceTitle]),
-        text: quote, author, sourceTitle,
+        text: quote, author, sourceTitle, bookId: bookIds.get(String(row.bookId ?? '')),
         pageNumber: text(String(row.pageNumber ?? row.page ?? '')) || undefined,
         tags: Array.isArray(row.tags) ? row.tags.map(text).filter(Boolean) : [],
         isFavorite: row.isFavorite === true,
@@ -91,14 +92,17 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
         reading: 'okunuyor', completed: 'okundu', paused: 'beklemede', want_to_read: 'okunacak',
         okunuyor: 'okunuyor', okundu: 'okundu', beklemede: 'beklemede', okunacak: 'okunacak',
       };
+      const bookIds = new Map<string, string>();
       for (const row of rows(root.userBooks ?? root.books ?? parsed)) {
         const title = text(row.title);
         if (!title) continue;
         const author = text(row.author) || 'Bilinmeyen Yazar';
         const totalPages = Math.max(1, natural(row.totalPages, 200));
         const cover = text(row.coverUrl);
+        const id = await importId(app.appId + '-book', row.id ?? [searchText(title), searchText(author)]);
+        if (row.id != null) bookIds.set(String(row.id), id);
         result.books.push({
-          id: await importId(app.appId + '-book', row.id ?? [searchText(title), searchText(author)]),
+          id,
           title, author, category: text(row.category) || 'Genel',
           status: statuses[text(row.status)] ?? 'okunacak', totalPages,
           currentPage: Math.min(totalPages, natural(row.currentPage)), isbn: text(row.isbn) || undefined,
@@ -108,15 +112,19 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
           createdAt: date(row.createdAt, now), updatedAt: date(row.updatedAt ?? row.createdAt, now),
         });
       }
-      await addQuotes(root.quotations);
+      await addQuotes(root.quotations, bookIds);
       break;
     }
     case 'alinti-defterim':
       await addQuotes(root.quotes ?? parsed);
       for (const row of rows(root.dictionary)) {
         if (text(row.word) && text(row.meaning)) {
-          await addRecord(text(row.word), { meaning: row.meaning, origin: row.origin, book: row.book, originalScript: row.originalScript },
-            { moduleId: 'kelime-muzesi', category: 'Lügat kartı' }, row.id ?? row);
+          await addRecord(text(row.word), {
+            originLanguage: '', rootForm: text(row.originalScript), etymologyNote: text(row.origin),
+            etymologyVerification: 'kaynak_belirtilmedi', sourceRef: text(row.book),
+            meaningToday: text(row.meaning), semanticShifts: '', synonyms: [], antonyms: [],
+            literaryExample: text(row.example), isForgotten: false, cognates: [],
+          }, { moduleId: 'kelime-muzesi', entityType: 'word_entry', category: 'Lügat kartı' }, row.id ?? row);
         }
       }
       break;
@@ -126,8 +134,18 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
         const lines = text(row.text);
         if (!title || !lines) continue;
         const poetName = text(row.author) || 'Ben';
-        await addRecord(title, { kind: 'poem', poetName, lines, theme: 'Kişisel şiir', isPersonal: true, notes: '' },
-          { entityType: 'poem', subtitle: poetName, category: 'Kişisel şiir', updatedAt: date(row.updatedAt, now) }, row.id ?? [title, lines]);
+        const id = text(row.id);
+        const progress = object(object(root.progress)?.[id]);
+        const favorite = object(root.favorites)?.[id];
+        await addRecord(title, {
+          kind: 'poem', poetName, lines, theme: 'Kişisel şiir', isPersonal: true,
+          notes: text(object(root.notes)?.[id]), readCount: progress ? 1 : undefined,
+          lastReadAt: date(progress?.at, '') || undefined,
+          importedPercent: progress ? progress.done ? 100 : Math.min(99, natural(progress.pct)) : undefined,
+        }, {
+          entityType: 'poem', subtitle: poetName, category: 'Kişisel şiir', updatedAt: date(row.updatedAt, now),
+          isFavorite: typeof favorite === 'number' && favorite > 0,
+        }, row.id ?? [title, lines]);
       }
       if (root.app === 'siir-deryasi') {
         const { ownPoems, ...archive } = omitExportMetadata(root);
@@ -143,6 +161,18 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
           entityType: 'reflection', category: 'Kişisel Tekâmül',
           date: /^\d{4}-\d{2}-\d{2}$/.test(text(row.date)) ? text(row.date) : undefined,
         }, row.id ?? row);
+      }
+      const habitDays = object(root.dailyHabits) ?? {};
+      const datesByHabit = new Map<string, string[]>();
+      for (const [key, checked] of Object.entries(habitDays)) {
+        const match = /^(\d{4}-\d{2}-\d{2})-([a-z]+)$/.exec(key);
+        if (checked !== true || !match || !Object.hasOwn(growthHabits, match[2])) continue;
+        datesByHabit.set(match[2], [...(datesByHabit.get(match[2]) ?? []), match[1]]);
+      }
+      for (const [id, completedDates] of datesByHabit) {
+        await addRecord(growthHabits[id as keyof typeof growthHabits], {
+          kind: 'habit', completedDates: completedDates.sort(),
+        }, { entityType: 'habit', category: 'Kişisel Tekâmül', subtitle: 'Günlük Alışkanlık' }, ['habit', id]);
       }
       if (object(root.tasks) && typeof root.version === 'number') {
         const { journal, ...archive } = omitExportMetadata(root);

@@ -20,6 +20,9 @@ const ModulesDirectoryPage = lazy(() =>
 const PlannedModulePage = lazy(() =>
   import('./pages/PlannedModulePage').then((m) => ({ default: m.PlannedModulePage }))
 );
+const IntegratedApplicationPage = lazy(() =>
+  import('./integrations/shared/IntegratedApplicationPage').then((m) => ({ default: m.IntegratedApplicationPage }))
+);
 const IntegrationsPage = lazy(() =>
   import('./pages/IntegrationsPage').then((m) => ({ default: m.IntegrationsPage }))
 );
@@ -218,6 +221,7 @@ export default function App() {
             <Route path="/takvim" element={wrap('Ortak Takvim', <CalendarPage />)} />
             <Route path="/koleksiyonlar" element={wrap('Koleksiyonlar', <CollectionsPage />)} />
             <Route path="/medya" element={wrap('Dosya ve Medya Merkezi', <MediaCenterPage />)} />
+            <Route path="/entegrasyonlar/:appId" element={wrap('Bağımsız uygulama', <IntegratedApplicationPage />)} />
             <Route path="/entegrasyonlar" element={wrap('Entegrasyonlar', <IntegrationsPage />)} />
             <Route path="/ayarlar" element={wrap('Ayarlar', <SettingsPage />)} />
 
