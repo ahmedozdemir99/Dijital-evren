@@ -81,6 +81,7 @@ export async function prepareExternalImport(app: Pick<ExternalAppConfig, 'appId'
         id: await importId(app.appId + '-quote', row.id ?? [quote, author, sourceTitle]),
         text: quote, author, sourceTitle, bookId: bookIds.get(String(row.bookId ?? '')),
         pageNumber: text(String(row.pageNumber ?? row.page ?? '')) || undefined,
+        category: text(row.category) || undefined,
         tags: Array.isArray(row.tags) ? row.tags.map(text).filter(Boolean) : [],
         isFavorite: row.isFavorite === true,
         createdAt: date(row.createdAt, now), updatedAt: date(row.updatedAt ?? row.createdAt, now),

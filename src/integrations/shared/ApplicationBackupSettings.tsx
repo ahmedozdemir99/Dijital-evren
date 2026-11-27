@@ -3,6 +3,7 @@ import { FileUp, RefreshCw } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { EXISTING_APPS_LIST } from '../../core/registry/modules';
 import { fetchExternalJson, MAX_IMPORT_BYTES, prepareExternalImport, SOURCE_IMPORTS, type ExternalImport } from '../../core/services/externalImports';
+import { summarizeApplicationProgress } from '../../core/services/applicationProgress';
 import { getRecordRoute } from '../../core/services/integrationService';
 import type { ExternalAppConfig } from '../../core/types/entities';
 import { useAppStore } from '../../store/useAppStore';
@@ -87,6 +88,11 @@ function ApplicationBackupImport({ app }: { app: ExternalAppConfig }) {
         <div className="flex flex-wrap gap-2">
           <button type="button" className={button} disabled={busy} onClick={() => run(async () => {
             const added = await importExternal(preview);
+            await updateExternalApp({
+              ...app,
+              lastSyncAt: new Date().toISOString(),
+              sourceProgress: summarizeApplicationProgress(app.appId, preview),
+            });
             setMessage(`${added} yeni kayıt eklendi.`);
             const record = preview.records[0];
             if (record?.entityType === 'imported_record' && ['sohbet-arsivi', 'namaz-yolculugum', 'bugun-ne-yesem', 'automusicpro'].includes(app.appId)) {
@@ -95,7 +101,6 @@ function ApplicationBackupImport({ app }: { app: ExternalAppConfig }) {
             else if (preview.books[0]) setLastRoute(getRecordRoute('dijital-kutuphanem', preview.books[0].id));
             else if (preview.quotes[0]) setLastRoute(getRecordRoute('alinti-defterim', preview.quotes[0].id));
             setPreview(null);
-            if (added) await updateExternalApp({ ...app, lastSyncAt: new Date().toISOString() });
           })}>Kayıtları içe aktar</button>
           <button type="button" className={button} disabled={busy} onClick={() => setPreview(null)}>Vazgeç</button>
         </div>
