@@ -19,7 +19,7 @@ export const SOURCE_IMPORTS: Record<string, { hint: string; live?: string; file?
   'siir-deryasi': { hint: 'Defterim ekranındaki JSON yedeği. Kişisel şiirler, favori işaretleri ve notlarıyla şiir listesine eklenir.', file: true },
   'automusicpro': { hint: 'Genel Ayarlar ekranından AutoMusic Pro 4 JSON yedeği. Çalma listeleri ve favoriler entegre oynatıcıda açılır.', file: true },
   'tekamul-yolunda': { hint: 'Tekâmül JSON yedeği. Günlük yazıları ve tarihli alışkanlık işaretleri Tekâmül modülüne eklenir.', file: true },
-  'mihrap-ve-minber': { hint: 'Akademi Yedek ekranındaki JSON dosyası. Ders ilerlemesi ve notlar gömülü Akademi ekranında açılır.', live: 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site', file: true },
+  'mihrap-ve-minber': { hint: 'Akademi Yedek ekranındaki JSON dosyası. Ders ilerlemesi ve notlar Dijital Evrenim’deki Akademi kayıtlarına aktarılır.', live: 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site', file: true },
   'namaz-yolculugum': { hint: 'Kaynak tarayıcıdaki namaz-yolculugum:ezber verisi JSON olarak ezber çizelgesine alınabilir.', live: 'https://namaz-yolculugum.toughtamarind.chatgpt.site', file: true },
   'bugun-ne-yesem': { hint: 'Malzemeler, favori tarif kimlikleri ve alışveriş listesi içeren mutfak JSON yedeği.', live: 'https://bugun-ne-yesem-mutfak.toughtamarind.chatgpt.site', file: true },
   'karadeniz-asistani': { hint: 'Canlı rota, hava ve deniz tahmini. Kaynak uygulama rota verisini oturum sonunda saklamıyor.' },

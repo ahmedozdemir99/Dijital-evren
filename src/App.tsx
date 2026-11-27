@@ -20,6 +20,9 @@ const ModulesDirectoryPage = lazy(() =>
 const PlannedModulePage = lazy(() =>
   import('./pages/PlannedModulePage').then((m) => ({ default: m.PlannedModulePage }))
 );
+const IndependentWorkspacePage = lazy(() =>
+  import('./integrations/shared/IndependentWorkspacePage').then((m) => ({ default: m.IndependentWorkspacePage }))
+);
 const IntegratedApplicationPage = lazy(() =>
   import('./integrations/shared/IntegratedApplicationPage').then((m) => ({ default: m.IntegratedApplicationPage }))
 );
@@ -211,6 +214,11 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <Routes>
+        <Route path="/uygulamalar/:appId" element={<Suspense fallback={<RouteLoader />}>
+          {wrap('Uygulama', <IndependentWorkspacePage />)}
+        </Suspense>} />
+        <Route path="*" element={<>
       <AppShell>
         <Suspense fallback={<RouteLoader />}>
           <Routes>
@@ -273,6 +281,8 @@ export default function App() {
 
       <UniversalSearchModal />
       <EvrenAssistantDrawer />
+        </>} />
+      </Routes>
     </BrowserRouter>
   );
 }

@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { ExternalLink, FileUp, FolderGit2, RefreshCw } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { ACADEMY_MODULE_ID, ACADEMY_ROUTE } from '../integrations/mihrap/progress';
-import { LIVE_APPLICATIONS } from '../integrations/shared/liveApplications';
+import { INDEPENDENT_APPLICATIONS } from '../integrations/shared/liveApplications';
+import { IndependentApplicationLink } from '../integrations/shared/IndependentApplicationLink';
 import { EXISTING_APPS_LIST, getCenterById, getModuleById } from '../core/registry/modules';
 import { fetchExternalJson, MAX_IMPORT_BYTES, prepareExternalImport, SOURCE_IMPORTS, type ExternalImport } from '../core/services/externalImports';
 import { getRecordRoute } from '../core/services/integrationService';
@@ -27,7 +28,7 @@ function IntegrationCard({ app }: { app: ExternalAppConfig }) {
   const registry = EXISTING_APPS_LIST.find((entry) => entry.appId === app.appId);
   const target = getModuleById(app.targetModuleId);
   const repo = safeLink(app.repoUrl) ?? safeLink(registry?.repoUrl);
-  const live = LIVE_APPLICATIONS[app.appId]?.url ?? safeLink(app.liveUrl) ?? source.live;
+  const live = INDEPENDENT_APPLICATIONS[app.appId] ?? safeLink(app.liveUrl) ?? source.live;
   const [api, setApi] = useState(app.apiUrl ?? '');
   const [preview, setPreview] = useState<ExternalImport | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,11 +58,13 @@ function IntegrationCard({ app }: { app: ExternalAppConfig }) {
       </div>
       <p className="text-sm leading-relaxed">{source.hint}</p>
       <div className="flex flex-wrap gap-2">
-        {repo && <a className={button} href={repo} target="_blank" rel="noreferrer"><FolderGit2 size={16} /> GitHub deposu</a>}
-        {live && <a className={button} href={live} target="_blank" rel="noreferrer"><ExternalLink size={16} /> Bağımsız sitede aç</a>}
-        <Link className={button} to={app.appId === ACADEMY_MODULE_ID ? ACADEMY_ROUTE : `/entegrasyonlar/${app.appId}`}>
-          {app.appId === ACADEMY_MODULE_ID || LIVE_APPLICATIONS[app.appId]?.embedded ? 'Dijital Evrenim içinde aç' : 'Entegre çalışma alanını aç'}
-        </Link>
+        <IndependentApplicationLink appId={app.appId} href={live} className={button}>
+          <ExternalLink size={16} /> {live ? 'Bağımsız uygulamayı aç' : 'Çalışma alanını ayrı aç'}
+        </IndependentApplicationLink>
+        {source.file && <Link className={button} to={app.appId === ACADEMY_MODULE_ID ? ACADEMY_ROUTE : `/entegrasyonlar/${app.appId}#aktarilan-veri`}>
+          {app.appId === ACADEMY_MODULE_ID ? 'Aktarılan Akademi ilerlemesi' : 'Aktarılan kayıtlar'}
+        </Link>}
+        {repo && <a className={button} href={repo} target="_blank" rel="noopener noreferrer"><FolderGit2 size={16} /> GitHub deposu</a>}
         {target && <Link className={button} to={target.route + '/calisma'}>Çalışma defteri</Link>}
       </div>
       {source.file && <div className="space-y-2 border-t border-current/10 pt-3">
@@ -146,7 +149,7 @@ export function IntegrationsPage() {
     <div className="space-y-5">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold">Bağımsız uygulamalar</h1>
-        <p className="max-w-2xl text-sm text-[#546070] dark:text-[#9BA7B6]">Bağımsız uygulamaları açın, kayıtlarınızı Dijital Evrenim’de kullanmak için desteklenen yedeği içe aktarın.</p>
+        <p className="max-w-2xl text-sm text-[#546070] dark:text-[#9BA7B6]">Her uygulama ayrı sekmede açılır. Dijital Evrenim’e kayıt taşımak isterseniz desteklenen yedeği içe aktarabilirsiniz.</p>
       </header>
       <div className="grid gap-4 lg:grid-cols-2">
         {EXISTING_APPS_LIST.map((base) => <IntegrationCard key={base.appId}

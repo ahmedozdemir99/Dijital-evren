@@ -1,3 +1,4 @@
+import { IndependentApplicationLink } from '../../integrations/shared/IndependentApplicationLink';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
@@ -145,7 +146,7 @@ export function QuoteNotebookModule() {
             Alıntı Defterim
           </h1>
           <Link to="/modul/alinti-defterim/calisma" className="inline-flex min-h-11 items-center text-sm underline">Çalışma defteri</Link>
-          <Link to="/entegrasyonlar/alinti-defterim" className="ml-3 inline-flex min-h-11 items-center text-sm underline">Bağımsız uygulamayı aç</Link>
+          <IndependentApplicationLink appId="alinti-defterim" className="ml-3 inline-flex min-h-11 items-center text-sm underline">Ayrı sekmede aç</IndependentApplicationLink>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] mt-1">
             Kitaplardan ve düşüncelerden süzülen alıntılar · Benzer kayıt kontrolü ve Zihin Atlası
             bağlantıları.
