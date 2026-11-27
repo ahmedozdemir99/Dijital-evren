@@ -10,7 +10,6 @@ interface ChatMessage {
   role: 'user' | 'model';
   text: string;
   generatedNotice?: string;
-  suggestedConceptTitle?: string;
 }
 
 export function EvrenAssistantDrawer() {
@@ -21,9 +20,7 @@ export function EvrenAssistantDrawer() {
     preferences,
     books,
     quotes,
-    knowledgeNodes,
     moduleRecords,
-    addKnowledgeNode,
     addQuickNote,
   } = useAppStore();
 
@@ -54,54 +51,17 @@ export function EvrenAssistantDrawer() {
       .slice(0, 4).map((book) => `Kitap: ${book.title} (${book.author})`) : [];
     const recentQuotes = generalAllowed ? quotes.filter((quote) => !quote.isArchived)
       .slice(0, 3).map((quote) => `Alıntı: ${quote.text.slice(0, 100)}`) : [];
-    const recentNodes = generalAllowed ? knowledgeNodes.filter((node) =>
-      node.sourceModule === 'zihin-atlasi' && !node.sourceEntityId)
-      .slice(0, 5).map((node) => `Kavram: ${node.title}`) : [];
     const permittedRecords = moduleRecords
       .filter((record) => !record.isArchived && record.moduleId === activeModule?.id &&
         preferences.aiPermittedDomains[record.privacyDomain] &&
         !(record.payload as { hideFromGlobalSearch?: boolean })?.hideFromGlobalSearch)
       .slice(0, 5).map((record) => `Modül kaydı: ${record.title}`);
-    return [...recentBooks, ...recentQuotes, ...recentNodes, ...permittedRecords].join('\n').slice(0, 8000);
+    return [...recentBooks, ...recentQuotes, ...permittedRecords].join('\n').slice(0, 8000);
   };
 
-  const quickPrompts = (() => {
-    if (activeModule?.id === 'siir-deryasi') {
-      return [
-        'Bu şiirdeki imgeler ile Zihin Atlası kavramları arasında bağ kurmama yardım et.',
-        'Türk şiirinde hece ölçüsü ve redif çözümlemesi yaparken nelere dikkat etmeliyim?',
-      ];
-    }
-    if (activeModule?.id === 'felsefe-meclisi') {
-      return [
-        'Seçili felsefi soruya karşıt iki ekolden Sokratik sorular üret.',
-        'Bu düşünce deneyinin etik ve epistemolojik sonuçlarını tartışmaya aç.',
-      ];
-    }
-    if (activeModule?.id === 'matematik-laboratuvari' || activeModule?.id === 'bilim-muzesi') {
-      return [
-        'Bu konuyu öğrencilere sezgisel bir benzetmeyle nasıl anlatabilirim?',
-        'Matematiksel veya bilimsel bir kavramın tarihsel gelişim bağlamını özetle.',
-      ];
-    }
-    if (activeModule?.id === 'tarih-atlasi') {
-      return [
-        'Bu tarihsel dönemdeki medeniyetler arası etkileşimleri karşılaştırmalı olarak özetle.',
-        'Gerçek tarihten ayrılan bir alternatif tarih senaryosu için tutarlı kırılma noktaları öner.',
-      ];
-    }
-    if (activeModule?.id === 'automusicpro' || activeModule?.id === 'kendi-dunyam') {
-      return [
-        'Kurgusal dünya veya besteleme çalışmam için tematik ilham ve yapısal tutarlılık önerileri ver.',
-        'Tarih Atlası veya Kelime Müzesinden yaratıcı atölye üretimine nasıl köprü kurabilirim?',
-      ];
-    }
-    return [
-      'Kütüphanemdeki kitaplar ile Zihin Atlasındaki kavramlar arasında nasıl bağlantılar kurulabilir?',
-      'Okuma ve not alma sürecimi derinleştirmek için Sokratik bir soru öner.',
-      'Kelime Müzesi ve Şiir Deryası arasında tematik bir çalışma planı öner.',
-    ];
-  })();
+  const quickPrompts = activeModule?.id === 'siir-deryasi'
+    ? ['Bu şiirdeki imgeleri yorumlamama yardım et.', 'Türk şiirinde hece ölçüsü ve redif çözümlemesi yaparken nelere dikkat etmeliyim?']
+    : ['Okuma ve not alma sürecimi derinleştirmek için bir soru öner.', 'Alıntı Defterim ve Şiir Deryası arasında tematik bir çalışma planı öner.'];
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -146,7 +106,6 @@ export function EvrenAssistantDrawer() {
             role: 'model',
             text: data.reply,
             generatedNotice: data.generatedNotice,
-            suggestedConceptTitle: currentPrompt.slice(0, 44),
           },
         ]);
       }
@@ -171,21 +130,6 @@ export function EvrenAssistantDrawer() {
       ['asistan-oneri']
     );
     setSavedFeedback('Onayınızla Hızlı Notlara kaydedildi.');
-    setTimeout(() => setSavedFeedback(null), 2500);
-  };
-
-  const handleApproveSaveAsConcept = async (msg: ChatMessage) => {
-    await addKnowledgeNode({
-      title: msg.suggestedConceptTitle || 'Asistan Kavram Önerisi',
-      nodeType: 'dusunce',
-      summary: `${msg.text.slice(0, 220)} [Yapay zekâ önerisi]`,
-      sourceModule: 'zihin-atlasi',
-      tags: ['asistan-onerisi'],
-      x: 240 + (knowledgeNodes.length * 47) % 240,
-      y: 140 + (knowledgeNodes.length * 53) % 180,
-      isDemo: false,
-    });
-    setSavedFeedback('Onayınızla Zihin Atlası\'na düşünce düğümü olarak eklendi.');
     setTimeout(() => setSavedFeedback(null), 2500);
   };
 
@@ -265,14 +209,6 @@ export function EvrenAssistantDrawer() {
                     >
                       <Check className="w-3 h-3" />
                       Onayla ve Notlara Kaydet
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleApproveSaveAsConcept(msg)}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5"
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      Zihin Atlası Düğümü Yap
                     </button>
                   </div>
                 </div>

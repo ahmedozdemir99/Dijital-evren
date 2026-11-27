@@ -2,7 +2,6 @@ import { IndependentApplicationLink } from '../../integrations/shared/Independen
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
-  ArrowRight,
   BookOpen,
   Network,
   Plus,
@@ -127,7 +126,7 @@ export function QuoteNotebookModule() {
     });
 
     setFeedback(
-      `Alıntı "${conceptNode.title}" kavram düğümüyle ilişkilendirildi ve Zihin Atlasına işlendi.`
+      `Alıntı "${conceptNode.title}" kavramıyla ilişkilendirildi.`
     );
     setLinkingQuote(null);
     setSelectedConceptId('');
@@ -148,7 +147,7 @@ export function QuoteNotebookModule() {
           <Link to="/modul/alinti-defterim/calisma" className="inline-flex min-h-11 items-center text-sm underline">Çalışma defteri</Link>
           <IndependentApplicationLink appId="alinti-defterim" className="ml-3 inline-flex min-h-11 items-center text-sm underline">Ayrı sekmede aç</IndependentApplicationLink>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] mt-1">
-            Kitaplardan ve düşüncelerden süzülen alıntılar · Benzer kayıt kontrolü ve Zihin Atlası
+            Kitaplardan ve düşüncelerden süzülen alıntılar · Benzer kayıt kontrolü ve kavram bağlantıları
             bağlantıları.
           </p>
         </div>
@@ -166,12 +165,6 @@ export function QuoteNotebookModule() {
       {feedback && (
         <div className="px-4 py-3 rounded-xl bg-[#71C6BD]/15 border border-[#71C6BD]/30 text-sm flex items-center justify-between gap-3">
           <span>{feedback}</span>
-          <Link
-            to="/modul/zihin-atlasi"
-            className="text-xs font-medium text-[#71C6BD] hover:underline whitespace-nowrap"
-          >
-            Zihin Atlasını Aç →
-          </Link>
         </div>
       )}
 
@@ -341,7 +334,7 @@ export function QuoteNotebookModule() {
         >
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs text-[#71C6BD] font-medium">Zihin Atlası Bağlantısı Kur</p>
+              <p className="text-xs text-[#71C6BD] font-medium">Kavram Bağlantısı Kur</p>
               <h2 className="text-lg font-semibold mt-0.5">
                 Alıntıyı Kavram Düğümüyle İlişkilendir
               </h2>
@@ -537,12 +530,7 @@ export function QuoteNotebookModule() {
 
                   <div className="flex flex-wrap items-center gap-3">
                     {conceptLinks.length > 0 && (
-                      <Link
-                        to={`/modul/zihin-atlasi?nodeId=${encodeURIComponent(conceptLinks[0].toEntityId)}`}
-                        className="inline-flex items-center gap-1 text-[#71C6BD] hover:underline whitespace-nowrap"
-                      >
-                        {conceptLinks.length} kavram bağı <ArrowRight className="w-3 h-3" />
-                      </Link>
+                      <span className="text-xs">{conceptLinks.length} kavram bağı</span>
                     )}
                     <button
                       type="button"
@@ -567,7 +555,7 @@ export function QuoteNotebookModule() {
       <ConfirmDialog
         open={Boolean(deleteTarget)}
         title="Alıntıyı Sil"
-        description="Bu alıntıyı ve ona bağlı Zihin Atlası ilişkilerini silmek istediğinize emin misiniz?"
+        description="Bu alıntıyı ve ona bağlı kavram ilişkilerini silmek istediğinize emin misiniz?"
         confirmLabel="Evet, Sil"
         destructive
         onCancel={() => setDeleteTarget(null)}

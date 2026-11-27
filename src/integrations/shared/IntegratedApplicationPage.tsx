@@ -12,7 +12,7 @@ export function IntegratedApplicationPage() {
   const { appId = '' } = useParams();
   const { hash } = useLocation();
   useEffect(() => {
-    if (hash === '#aktarilan-veri') document.getElementById('aktarilan-veri')?.scrollIntoView({ block: 'start' });
+    if (hash) document.getElementById(hash.slice(1))?.scrollIntoView({ block: 'start' });
   }, [appId, hash]);
 
   if (appId === ACADEMY_MODULE_ID) return <Navigate to={ACADEMY_ROUTE} replace />;

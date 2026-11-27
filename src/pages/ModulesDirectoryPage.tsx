@@ -20,7 +20,9 @@ export function ModulesDirectoryPage() {
   const [query, setQuery] = useState('');
 
   const visibleCenters = useMemo(
-    () => (selectedDomain === 'all' ? CENTERS : getCentersByDomain(selectedDomain)),
+    () => (selectedDomain === 'all'
+      ? CENTERS.filter((center) => MODULES.some((mod) => mod.centerId === center.id))
+      : getCentersByDomain(selectedDomain)),
     [selectedDomain]
   );
 
@@ -250,7 +252,7 @@ export function ModulesDirectoryPage() {
 
               <div className="pt-3 border-t border-black/5 dark:border-white/5 flex items-center justify-between gap-2 text-xs">
                 <span className="text-[#546070] dark:text-[#9BA7B6] truncate">
-                  {mod.hasExistingApp ? 'Harici Uygulama Adayı' : 'Yerleşik Modül'}
+                  Entegre uygulama
                 </span>
                 {enabled ? (
                   <Link

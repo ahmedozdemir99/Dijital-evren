@@ -626,11 +626,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
     await ecosystemRepository.saveKnowledgeNode(node);
     const log = await appendActivity(
-      'zihin-atlasi',
+      node.sourceModule,
       'dugum_olusturuldu',
       'knowledge_node',
       node.id,
-      `"${node.title}" düğümü Zihin Atlası'na eklendi`
+      `"${node.title}" düğümü bilgi ağına eklendi`
     );
     set((state) => ({
       knowledgeNodes: [node, ...state.knowledgeNodes],
@@ -663,7 +663,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       await ecosystemRepository.deleteRelation(r.id);
     }
     const log = await appendActivity(
-      'zihin-atlasi',
+      target?.sourceModule ?? 'idrak',
       'dugum_silindi',
       'knowledge_node',
       id,
@@ -686,7 +686,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     };
     await ecosystemRepository.saveRelation(rel);
     const log = await appendActivity(
-      'zihin-atlasi',
+      rel.fromModule,
       'baglanti_kuruldu',
       'entity_relation',
       rel.id,
@@ -773,7 +773,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         summary:
           newConceptSummary?.trim() ||
           `"${quote.sourceTitle}" alıntısından türetilen kavram düğümü.`,
-        sourceModule: 'zihin-atlasi',
+        sourceModule: 'alinti-defterim',
         tags: quote.tags,
         x: Math.round(260 + ((count * 97) % 280)),
         y: Math.round(120 + ((count * 71) % 210)),
@@ -786,7 +786,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       fromEntityId: quote.id,
       fromEntityType: 'quote',
       fromLabel: quote.text.length > 52 ? `${quote.text.slice(0, 52)}…` : quote.text,
-      toModule: 'zihin-atlasi',
+      toModule: conceptNode.sourceModule,
       toEntityId: conceptNode.id,
       toEntityType: 'knowledge_node',
       toLabel: conceptNode.title,

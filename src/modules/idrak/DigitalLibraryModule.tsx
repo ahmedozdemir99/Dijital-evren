@@ -4,7 +4,6 @@ import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowRight,
   BookOpen,
-  Network,
   Plus,
   Quote as QuoteIcon,
   Search,
@@ -36,7 +35,6 @@ export function DigitalLibraryModule() {
     updateBook,
     deleteBook,
     addQuote,
-    ensureEntityNode,
     linkQuoteToConcept,
   } = useAppStore();
 
@@ -166,7 +164,7 @@ export function DigitalLibraryModule() {
         newConceptTitle: linkConceptTitle.trim() || undefined,
       });
       setFlowFeedback(
-        'Alıntı oluşturuldu, kitaba bağlandı ve Zihin Atlası kavram düğümüyle ilişkilendirildi.'
+        'Alıntı oluşturuldu, kitaba bağlandı ve bilgi ağındaki kavramla ilişkilendirildi.'
       );
     } else {
       setFlowFeedback('Alıntı Alıntı Defterim modülüne kaydedildi ve kitapla ilişkilendirildi.');
@@ -181,21 +179,8 @@ export function DigitalLibraryModule() {
     setTimeout(() => setFlowFeedback(null), 4000);
   };
 
-  const handleSendBookToAtlas = async (book: Book) => {
-    await ensureEntityNode({
-      title: book.title,
-      nodeType: 'kitap',
-      summary: `${book.author} · ${book.category} · Dijital Kütüphanem`,
-      sourceModule: 'dijital-kutuphanem',
-      sourceEntityId: book.id,
-      tags: [book.category],
-    });
-    setFlowFeedback(`"${book.title}" Zihin Atlası grafiğine düğüm olarak eklendi.`);
-    setTimeout(() => setFlowFeedback(null), 3500);
-  };
-
-  const totalReadPages = books.reduce((sum, b) => sum + b.currentPage, 0);
-  const completedBooksCount = books.filter((b) => b.status === 'okundu').length;
+  const totalReadPages = books.reduce((sum, book) => sum + book.currentPage, 0);
+  const completedBooksCount = books.filter((book) => book.status === 'okundu').length;
 
   return (
     <div className="space-y-6">
@@ -209,7 +194,7 @@ export function DigitalLibraryModule() {
           <Link to="/modul/dijital-kutuphanem/calisma" className="inline-flex min-h-11 items-center text-sm underline">Çalışma defteri</Link>
           <IndependentApplicationLink appId="dijital-kutuphanem" className="ml-3 inline-flex min-h-11 items-center text-sm underline">Ayrı sekmede aç</IndependentApplicationLink>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] mt-1">
-            Merkezi kitap arşivi, okuma ilerlemesi ve Alıntı Defterim / Zihin Atlası kaynak noktası.
+            Merkezi kitap arşivi, okuma ilerlemesi ve Alıntı Defterim bağlantıları.
           </p>
         </div>
 
@@ -234,12 +219,6 @@ export function DigitalLibraryModule() {
       {flowFeedback && (
         <div className="px-4 py-3 rounded-xl bg-[#71C6BD]/15 border border-[#71C6BD]/30 text-sm text-[#141923] dark:text-[#F1F3F5] flex items-center justify-between gap-3">
           <span>{flowFeedback}</span>
-          <Link
-            to="/modul/zihin-atlasi"
-            className="text-xs font-medium text-[#71C6BD] hover:underline whitespace-nowrap"
-          >
-            Zihin Atlasında Gör →
-          </Link>
         </div>
       )}
 
@@ -422,7 +401,7 @@ export function DigitalLibraryModule() {
           <BookOpen className="w-8 h-8 text-[#71C6BD] mx-auto" />
           <h2 className="text-xl font-semibold">Kütüphaneniz henüz boş</h2>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] max-w-md mx-auto">
-            İlk kitabınızı ekleyerek okuma takibini, alıntı üretimini ve Zihin Atlası kavram
+            İlk kitabınızı ekleyerek okuma takibini, alıntı üretimini ve bilgi ağındaki kavram
             bağlantılarını başlatabilirsiniz.
           </p>
           <button
@@ -643,14 +622,6 @@ export function DigitalLibraryModule() {
                     <QuoteIcon className="w-3.5 h-3.5 shrink-0" />
                     <span>Bu Kitaptan Alıntı Oluştur</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSendBookToAtlas(selectedBook)}
-                    className="h-9 inline-flex items-center justify-center gap-1.5 px-3.5 text-xs font-medium rounded-lg border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 whitespace-nowrap shrink-0"
-                  >
-                    <Network className="w-3.5 h-3.5 text-[#71C6BD] shrink-0" />
-                    <span>Zihin Atlasına Kitap Düğümü Ekle</span>
-                  </button>
                   <label className="inline-flex items-center gap-1.5 text-xs text-[#546070] dark:text-[#9BA7B6]">
                     <span className="whitespace-nowrap">Hedef Tarih:</span>
                     <input
@@ -716,7 +687,7 @@ export function DigitalLibraryModule() {
 
                     <div className="pt-2 border-t border-black/10 dark:border-white/10 space-y-2">
                       <p className="text-xs font-medium text-[#546070] dark:text-[#9BA7B6]">
-                        Doğrudan Zihin Atlası Kavramıyla İlişkilendir (İsteğe Bağlı)
+                        Bilgi ağındaki bir kavramla ilişkilendir
                       </p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <select

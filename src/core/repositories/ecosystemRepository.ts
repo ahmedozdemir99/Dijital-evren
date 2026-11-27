@@ -43,6 +43,19 @@ export const LEGACY_REMOVED_MODULE_IDS = [
   'deneme-analiz',
   'akilli-bileklik',
   'bizbize-riders',
+  'kelime-muzesi',
+  'edebiyat-atolyesi',
+  'felsefe-meclisi',
+  'mantik-akademisi',
+  'tarih-atlasi',
+  'tarih-simulatoru',
+  'zihin-atlasi',
+  'hafiza-sarayi',
+  'kendi-ansiklopedim',
+  'matematik-laboratuvari',
+  'gokyuzu-atlasi',
+  'bilim-muzesi',
+  'kendi-dunyam',
 ] as const;
 
 export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetConfig[] = [
@@ -54,7 +67,6 @@ export const DEFAULT_DASHBOARD_WIDGETS: DashboardWidgetConfig[] = [
   { id: 'favorite_and_recent', label: 'Favori ve Son Modüller', visible: true, order: 6 },
   { id: 'recent_connections', label: 'Son Bilgi Bağlantıları', visible: true, order: 7 },
   { id: 'activity_summary', label: 'Haftalık Etkinlik Özeti', visible: true, order: 8 },
-  { id: 'daily_curated', label: 'Günün Seçkisi (Kelime, Soru ve Olay)', visible: true, order: 9 },
 ];
 
 export const DEFAULT_PROFILE: UserProfile = {
@@ -799,13 +811,20 @@ function retiredRecords(snapshot: Pick<EcosystemSnapshot, 'moduleRecords' | 'kno
   do {
     size = ids.size;
     for (const record of snapshot.moduleRecords) {
-      if (retiredModules.has(record.moduleId) || isRetiredReference(record.sourceModule, record.sourceEntityId, ids)) ids.add(record.id);
+      if (retiredModules.has(currentRecordModule(record)) || isRetiredReference(record.sourceModule, record.sourceEntityId, ids)) ids.add(record.id);
     }
     for (const record of [...snapshot.knowledgeNodes, ...snapshot.quotes]) {
       if (isRetiredReference(record.sourceModule, record.sourceEntityId, ids)) ids.add(record.id);
     }
   } while (ids.size !== size);
   return ids;
+}
+
+function currentRecordModule(record: ModuleRecord) {
+  if (record.moduleId === 'kelime-muzesi' && record.entityType === 'word_entry' && record.id.startsWith('ext-alinti-defterim-')) {
+    return 'alinti-defterim';
+  }
+  return record.moduleId;
 }
 
 export function isRetiredReference(moduleId: string | undefined, entityId: string | undefined, ids: ReadonlySet<string>) {
@@ -820,7 +839,10 @@ export function activeSnapshot(snapshot: EcosystemSnapshot) {
     retiredEntityIds,
     moduleSettings: snapshot.moduleSettings.filter((item) => !retired(item.moduleId)),
     externalApps: snapshot.externalApps.filter((item) => !retired(item.targetModuleId)),
-    moduleRecords: snapshot.moduleRecords.filter((item) => !retired(undefined, item.id)),
+    moduleRecords: snapshot.moduleRecords.filter((item) => !retired(undefined, item.id)).map((item) => {
+      const moduleId = currentRecordModule(item);
+      return item.moduleId === moduleId ? item : { ...item, moduleId };
+    }),
     knowledgeNodes: snapshot.knowledgeNodes.filter((item) => !retired(undefined, item.id)),
     quotes: snapshot.quotes.filter((item) => !retired(undefined, item.id)),
     entityRelations: snapshot.entityRelations.filter((item) =>
@@ -830,7 +852,7 @@ export function activeSnapshot(snapshot: EcosystemSnapshot) {
       file.linkedRefs.some((ref) => !retired(ref.moduleId, ref.entityId))),
     notifications: snapshot.notifications.filter((item) => !retired(item.moduleId)).map((item) =>
       item.id === 'notif-full-ecosystem' ? { ...item, title: 'Dijital Evrenim hazır',
-        message: 'Üç ana alan, altı merkez, ortak takvim ve koleksiyonlar kullanıma hazır.' } : item),
+        message: 'Entegre uygulamalar, ortak takvim ve koleksiyonlar kullanıma hazır.' } : item),
   };
 }
 
@@ -907,17 +929,10 @@ export class IndexedDbEcosystemRepository {
       }
     }
 
-    const activeModuleIds = new Set(MODULES.map((m) => m.id));
     if (moduleSettings.length === 0) {
       moduleSettings = createDefaultModuleSettings();
       await putManyInStore('module_settings', moduleSettings);
     } else {
-      // Remove stale module_settings rows for retired/merged modules (records remain intact in module_records)
-      const staleSettings = moduleSettings.filter((s) => !activeModuleIds.has(s.moduleId));
-      if (staleSettings.length > 0) {
-        await Promise.all(staleSettings.map((s) => deleteFromStore('module_settings', s.moduleId)));
-        moduleSettings = moduleSettings.filter((s) => activeModuleIds.has(s.moduleId));
-      }
       const existingIds = new Set(moduleSettings.map((s) => s.moduleId));
       const missing = createDefaultModuleSettings().filter((s) => !existingIds.has(s.moduleId));
       if (missing.length > 0) {
@@ -946,7 +961,9 @@ export class IndexedDbEcosystemRepository {
     }
 
     if (isFirstRun) {
-      const seed = createDemoSeedData();
+      const seed = activeSnapshot({
+        ...createDemoSeedData(), profile, preferences, moduleSettings, externalApps, attachments: [],
+      });
       await Promise.all([
         putManyInStore('books', seed.books),
         putManyInStore('quotes', seed.quotes),
@@ -958,24 +975,6 @@ export class IndexedDbEcosystemRepository {
         putManyInStore('activity_logs', seed.activityLogs),
         putManyInStore('notifications', seed.notifications),
       ]);
-    }
-
-    // Apply each curated content release once, without replacing personal records.
-    const contentRelease = 'curated-philosophy-science-v1';
-    if (!(await getOneFromStore('content_migrations', contentRelease))) {
-      if (!isFirstRun) {
-        const ids = new Set(existingRecords.map(record => record.id));
-        const releaseIds = new Set([
-          'demo-phil-sokrates', 'demo-phil-stoacilik', 'demo-phil-ibn-haldun',
-          'demo-phil-kant', 'demo-phil-descartes', 'demo-science-newton',
-          'demo-science-mendeleyev', 'demo-science-mendel', 'demo-science-kepler',
-          'demo-science-turing',
-        ]);
-        const additions = createDemoSeedData().moduleRecords.filter(record =>
-          record.isDemo && releaseIds.has(record.id) && !ids.has(record.id));
-        await putManyInStore('module_records', additions);
-      }
-      await putInStore('content_migrations', { id: contentRelease, appliedAt: new Date().toISOString() });
     }
 
     return this.loadAll();
@@ -1178,7 +1177,8 @@ export class IndexedDbEcosystemRepository {
             (r) => r.fromModule === scope || r.toModule === scope
           ),
           quickNotes: [],
-          moduleRecords: snap.moduleRecords.filter((r) => r.moduleId === scope),
+          moduleRecords: snap.moduleRecords.filter((r) => currentRecordModule(r) === scope)
+            .map((record) => record.moduleId === scope ? record : { ...record, moduleId: scope }),
           collections: [],
           attachments: [],
           activityLogs: snap.activityLogs.filter((l) => l.moduleId === scope),

@@ -31,8 +31,6 @@ interface AppShellProps {
 const CORE_FLOW_IDS = new Set([
   'dijital-kutuphanem',
   'alinti-defterim',
-  'zihin-atlasi',
-  'kendi-ansiklopedim',
 ]);
 
 const primaryMenu = [

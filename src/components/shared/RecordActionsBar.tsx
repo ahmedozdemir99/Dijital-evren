@@ -64,7 +64,7 @@ export function RecordActionsBar({
       sourceModule: moduleId,
       sourceEntityId: entityId,
     });
-    notify('Zihin Atlasına düğüm olarak işlendi.');
+    notify('Bilgi ağına eklendi.');
   };
 
   const handleCreateRelation = async (e: React.FormEvent) => {
@@ -120,14 +120,13 @@ export function RecordActionsBar({
   return (
     <div className="pt-3 border-t border-black/10 dark:border-white/10 space-y-3">
       <div className="flex flex-wrap items-center gap-2 text-xs">
-        {atlasNode ? <Link className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-current/20 px-2.5"
-          to={getRecordRoute('zihin-atlasi', atlasNode.id)}><Network className="h-4 w-4" /> Zihin Atlasında aç</Link> : <button
+        {!atlasNode && <button
           type="button"
           onClick={handleSendToAtlas}
           className="h-8 inline-flex items-center justify-center gap-1.5 px-2.5 rounded-lg border border-black/10 dark:border-white/15 hover:bg-black/5 dark:hover:bg-white/5 whitespace-nowrap shrink-0"
         >
           <Network className="w-3.5 h-3.5 text-[#71C6BD] shrink-0" />
-          <span>Zihin Atlasına Bağla</span>
+          <span>Bilgi Ağına Ekle</span>
         </button>}
 
         <button
@@ -176,7 +175,9 @@ export function RecordActionsBar({
             const targetModule = incoming ? relation.fromModule : relation.toModule;
             const label = incoming ? relation.fromLabel : relation.toLabel;
             const record = moduleRecords.find((entry) => entry.id === id && entry.moduleId === targetModule);
-            const route = MODULES.some((module) => module.id === targetModule) ? getRecordRoute(targetModule, id, record?.entityType) : null;
+            const isConcept = knowledgeNodes.some((node) => node.id === id && !node.sourceEntityId);
+            const route = !isConcept && MODULES.some((module) => module.id === targetModule)
+              ? getRecordRoute(targetModule, id, record?.entityType) : null;
             return <div key={relation.id} className="flex items-start justify-between gap-2">
               <div className="min-w-0 break-words">
                 <span className="text-[#546070] dark:text-[#9BA7B6]">{incoming ? 'Gelen' : 'Giden'} · {relation.relationType.replaceAll('_', ' ')} · </span>
@@ -191,7 +192,7 @@ export function RecordActionsBar({
               onChange={(e) => setTargetNodeId(e.target.value)}
               className="flex-1 min-w-[160px] h-8 px-2.5 rounded-lg bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10"
             >
-              <option value="">Zihin Atlasından hedef seç...</option>
+              <option value="">Bilgi ağından hedef seçin</option>
               {targets.map((n) => (
                 <option key={n.id} value={n.id}>
                   {n.title} ({n.nodeType})

@@ -136,7 +136,7 @@ export function UniversalSearchModal() {
     module: 'Modül',
     book: 'Kitap',
     quote: 'Alıntı',
-    knowledge_node: 'Zihin Atlası',
+    knowledge_node: 'Bilgi ağı',
     quick_note: 'Not',
     record: 'Kayıt',
   };
@@ -236,7 +236,7 @@ export function UniversalSearchModal() {
               <option value="module">Modüller</option>
               <option value="book">Kitaplar</option>
               <option value="quote">Alıntılar</option>
-              <option value="knowledge_node">Zihin Atlası</option>
+              <option value="knowledge_node">Bilgi ağı</option>
               <option value="record">Modül Kayıtları</option>
               <option value="quick_note">Hızlı Notlar</option>
             </select>

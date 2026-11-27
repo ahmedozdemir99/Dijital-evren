@@ -17,9 +17,6 @@ const CenterDetailPage = lazy(() =>
 const ModulesDirectoryPage = lazy(() =>
   import('./pages/ModulesDirectoryPage').then((m) => ({ default: m.ModulesDirectoryPage }))
 );
-const PlannedModulePage = lazy(() =>
-  import('./pages/PlannedModulePage').then((m) => ({ default: m.PlannedModulePage }))
-);
 const IndependentWorkspacePage = lazy(() =>
   import('./integrations/shared/IndependentWorkspacePage').then((m) => ({ default: m.IndependentWorkspacePage }))
 );
@@ -46,31 +43,10 @@ const ModuleWorkspacePage = lazy(() =>
   import('./pages/ModuleWorkspacePage').then((m) => ({ default: m.ModuleWorkspacePage }))
 );
 
-// I. ZİHİN -> İrfan (6 Modül)
 const PoetrySeaModule = lazy(() =>
   import('./modules/irfan/PoetrySeaModule').then((m) => ({ default: m.PoetrySeaModule }))
 );
-const WordMuseumModule = lazy(() =>
-  import('./modules/irfan/WordMuseumModule').then((m) => ({ default: m.WordMuseumModule }))
-);
-const LiteratureWorkshopModule = lazy(() =>
-  import('./modules/irfan/LiteratureWorkshopModule').then((m) => ({
-    default: m.LiteratureWorkshopModule,
-  }))
-);
-const PhilosophyCouncilModule = lazy(() =>
-  import('./modules/irfan/PhilosophyCouncilModule').then((m) => ({
-    default: m.PhilosophyCouncilModule,
-  }))
-);
-const LogicAcademyModule = lazy(() =>
-  import('./modules/irfan/LogicAcademyModule').then((m) => ({ default: m.LogicAcademyModule }))
-);
-const HistoryAtlasModule = lazy(() =>
-  import('./modules/irfan/HistoryAtlasModule').then((m) => ({ default: m.HistoryAtlasModule }))
-);
 
-// I. ZİHİN -> İdrak (6 Modül)
 const DigitalLibraryModule = lazy(() =>
   import('./modules/idrak/DigitalLibraryModule').then((m) => ({ default: m.DigitalLibraryModule }))
 );
@@ -80,33 +56,8 @@ const QuoteNotebookModule = lazy(() =>
 const ChatArchiveModule = lazy(() =>
   import('./modules/idrak/ChatArchiveModule').then((m) => ({ default: m.ChatArchiveModule }))
 );
-const MindAtlasModule = lazy(() =>
-  import('./modules/idrak/MindAtlasModule').then((m) => ({ default: m.MindAtlasModule }))
-);
-const MemoryPalaceModule = lazy(() =>
-  import('./modules/idrak/MemoryPalaceModule').then((m) => ({ default: m.MemoryPalaceModule }))
-);
-const EncyclopediaModule = lazy(() =>
-  import('./modules/idrak/EncyclopediaModule').then((m) => ({ default: m.EncyclopediaModule }))
-);
-
-// II. KEŞİF -> Kozmos (3 Modül)
-const MathLabModule = lazy(() =>
-  import('./modules/kozmos/MathLabModule').then((m) => ({ default: m.MathLabModule }))
-);
-const SkyAtlasModule = lazy(() =>
-  import('./modules/kozmos/SkyAtlasModule').then((m) => ({ default: m.SkyAtlasModule }))
-);
-const ScienceMuseumModule = lazy(() =>
-  import('./modules/kozmos/ScienceMuseumModule').then((m) => ({ default: m.ScienceMuseumModule }))
-);
-
-// II. KEŞİF -> Atölye (2 Modül)
 const AutoMusicProModule = lazy(() =>
   import('./modules/atolye/AutoMusicProModule').then((m) => ({ default: m.AutoMusicProModule }))
-);
-const WorldbuilderModule = lazy(() =>
-  import('./modules/atolye/WorldbuilderModule').then((m) => ({ default: m.WorldbuilderModule }))
 );
 
 // Tekâmül (3 Modules)
@@ -233,47 +184,25 @@ export default function App() {
             <Route path="/entegrasyonlar" element={wrap('Entegrasyonlar', <IntegrationsPage />)} />
             <Route path="/ayarlar" element={wrap('Ayarlar', <SettingsPage />)} />
 
-            {/* I. ZİHİN -> İrfan (6 Modül) */}
             <Route path="/modul/siir-deryasi" element={wrap('Şiir Deryası', <PoetrySeaModule />)} />
-            <Route path="/modul/kelime-muzesi" element={wrap('Kelime Müzesi', <WordMuseumModule />)} />
-            <Route path="/modul/edebiyat-atolyesi" element={wrap('Edebiyat Atölyesi', <LiteratureWorkshopModule />)} />
-            <Route path="/modul/felsefe-meclisi" element={wrap('Felsefe Meclisi', <PhilosophyCouncilModule />)} />
-            <Route path="/modul/mantik-akademisi" element={wrap('Mantık Akademisi', <LogicAcademyModule />)} />
-            <Route path="/modul/tarih-atlasi" element={wrap('Tarih Atlası', <HistoryAtlasModule />)} />
-            <Route
-              path="/modul/tarih-simulatoru"
-              element={<Navigate to="/modul/tarih-atlasi?tab=simulator" replace />}
-            />
 
-            {/* I. ZİHİN -> İdrak (6 Modül) */}
             <Route path="/modul/dijital-kutuphanem" element={wrap('Dijital Kütüphanem', <DigitalLibraryModule />)} />
             <Route path="/modul/alinti-defterim" element={wrap('Alıntı Defterim', <QuoteNotebookModule />)} />
             <Route path="/modul/sohbet-arsivi" element={wrap('Sohbet Arşivi', <ChatArchiveModule />)} />
-            <Route path="/modul/zihin-atlasi" element={wrap('Zihin Atlası', <MindAtlasModule />)} />
-            <Route path="/modul/hafiza-sarayi" element={wrap('Hafıza Sarayı', <MemoryPalaceModule />)} />
-            <Route path="/modul/kendi-ansiklopedim" element={wrap('Kendi Ansiklopedim', <EncyclopediaModule />)} />
 
-            {/* II. KEŞİF -> Kozmos (3 Modül) */}
-            <Route path="/modul/matematik-laboratuvari" element={wrap('Matematik Laboratuvarı', <MathLabModule />)} />
-            <Route path="/modul/gokyuzu-atlasi" element={wrap('Gökyüzü Atlası', <SkyAtlasModule />)} />
-            <Route path="/modul/bilim-muzesi" element={wrap('Bilim Müzesi', <ScienceMuseumModule />)} />
 
-            {/* II. KEŞİF -> Atölye (2 Modül) */}
             <Route path="/modul/automusicpro" element={wrap('AutoMusicPro', <AutoMusicProModule />)} />
-            <Route path="/modul/kendi-dunyam" element={wrap('Kendi Dünyam', <WorldbuilderModule />)} />
 
-            {/* III. YAŞAM -> Tekâmül (3 Modül) */}
-            <Route path="/modul/tekamul-yolunda" element={wrap('Tekâmül Yolunda', <SelfGrowthModule />)} />
+            <Route path="/modul/tekamul-yolunda" element={wrap('Şahsiyet ve Tekâmül', <SelfGrowthModule />)} />
             <Route path="/modul/mihrap-ve-minber/akademi" element={wrap('Mihrap ve Minber Akademisi', <MihrapAcademyPage />)} />
             <Route path="/modul/mihrap-ve-minber" element={wrap('Mihrap ve Minber', <MihrapMinberModule />)} />
             <Route path="/modul/namaz-yolculugum" element={wrap('Namaz Yolculuğum', <PrayerJourneyModule />)} />
 
-            {/* III. YAŞAM -> Hayat (2 Modül) */}
             <Route path="/modul/karadeniz-asistani" element={wrap('Karadeniz Asistanı', <KaradenizAssistantModule />)} />
             <Route path="/modul/bugun-ne-yesem" element={wrap('Bugün Ne Yesem', <WhatToEatModule />)} />
 
             <Route path="/modul/:moduleId/calisma" element={wrap('Çalışma defteri', <ModuleWorkspacePage />)} />
-            <Route path="/modul/:moduleId" element={wrap('Modül', <PlannedModulePage />)} />
+            <Route path="/modul/*" element={<Navigate to="/moduller" replace />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
