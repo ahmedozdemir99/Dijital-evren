@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { IndependentApplicationLink } from '../../integrations/shared/IndependentApplicationLink';
+import { Link, useLocation } from 'react-router-dom';
 import { useState } from 'react';
 import {
   Download,
@@ -33,6 +34,7 @@ export function ModuleWorkbenchHeader({
   csvRows,
   extraActions,
 }: ModuleWorkbenchHeaderProps) {
+  const isStandalone = useLocation().pathname.startsWith('/uygulamalar/');
   const {
     moduleSettings,
     activityLogs,
@@ -140,10 +142,10 @@ export function ModuleWorkbenchHeader({
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <Link to={mod.route + '/calisma'} className="inline-flex min-h-11 items-center rounded-lg border border-current/20 px-3 text-sm hover:bg-black/5 dark:hover:bg-white/5">Çalışma defteri</Link>
-          {moduleId !== 'mihrap-ve-minber' && EXISTING_APPS_LIST.some((app) => app.appId === moduleId) &&
-            <Link to={`/entegrasyonlar/${moduleId}`} className="inline-flex min-h-11 items-center rounded-lg border border-current/20 px-3 text-sm">
-              Bağımsız uygulama entegrasyonu
-            </Link>}
+          {!isStandalone && EXISTING_APPS_LIST.some((app) => app.appId === moduleId) &&
+            <IndependentApplicationLink appId={moduleId} className="inline-flex min-h-11 items-center rounded-lg border border-current/20 px-3 text-sm">
+              Ayrı sekmede aç
+            </IndependentApplicationLink>}
           {extraActions}
 
           <button

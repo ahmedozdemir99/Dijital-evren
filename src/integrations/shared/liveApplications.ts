@@ -1,9 +1,18 @@
-export const LIVE_APPLICATIONS: Record<string, { url: string; embedded: boolean; allow?: string }> = {
-  'dijital-kutuphanem': { url: 'https://final-kutuphanem.pages.dev/', embedded: true },
-  'alinti-defterim': { url: 'https://al-nt-defterim.pages.dev/', embedded: true },
-  'sohbet-arsivi': { url: 'https://sohbet-arsivi-ejs.pages.dev/', embedded: true, allow: 'fullscreen; encrypted-media; picture-in-picture' },
-  'siir-deryasi': { url: 'https://siir-deryasi.pages.dev/', embedded: false },
-  'namaz-yolculugum': { url: 'https://namaz-yolculugum.pages.dev/', embedded: true },
-  'bugun-ne-yesem': { url: 'https://bugun-ne-yesem.pages.dev/', embedded: true },
-  'karadeniz-asistani': { url: 'https://karadeniz-asistani.pages.dev/', embedded: true, allow: 'geolocation' },
+export const INDEPENDENT_APPLICATIONS: Record<string, string> = {
+  'dijital-kutuphanem': 'https://final-kutuphanem.pages.dev/',
+  'alinti-defterim': 'https://al-nt-defterim.pages.dev/',
+  'sohbet-arsivi': 'https://sohbet-arsivi-ejs.pages.dev/',
+  'siir-deryasi': 'https://siir-deryasi.pages.dev/',
+  'mihrap-ve-minber': 'https://mihrap-ve-minber-akademisi.toughtamarind.chatgpt.site/',
+  'namaz-yolculugum': 'https://namaz-yolculugum.pages.dev/',
+  'bugun-ne-yesem': 'https://bugun-ne-yesem.pages.dev/',
+  'karadeniz-asistani': 'https://karadeniz-asistani.pages.dev/',
 };
+
+export function independentSourceUrl(appId: string): string | undefined {
+  return Object.hasOwn(INDEPENDENT_APPLICATIONS, appId) ? INDEPENDENT_APPLICATIONS[appId] : undefined;
+}
+
+export function independentApplicationHref(appId: string) {
+  return independentSourceUrl(appId) ?? `/uygulamalar/${encodeURIComponent(appId)}`;
+}

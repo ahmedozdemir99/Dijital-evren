@@ -1,3 +1,4 @@
+import { IndependentApplicationLink } from '../../integrations/shared/IndependentApplicationLink';
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
@@ -206,7 +207,7 @@ export function DigitalLibraryModule() {
             Dijital Kütüphanem
           </h1>
           <Link to="/modul/dijital-kutuphanem/calisma" className="inline-flex min-h-11 items-center text-sm underline">Çalışma defteri</Link>
-          <Link to="/entegrasyonlar/dijital-kutuphanem" className="ml-3 inline-flex min-h-11 items-center text-sm underline">Bağımsız uygulamayı aç</Link>
+          <IndependentApplicationLink appId="dijital-kutuphanem" className="ml-3 inline-flex min-h-11 items-center text-sm underline">Ayrı sekmede aç</IndependentApplicationLink>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] mt-1">
             Merkezi kitap arşivi, okuma ilerlemesi ve Alıntı Defterim / Zihin Atlası kaynak noktası.
           </p>

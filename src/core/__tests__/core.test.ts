@@ -553,13 +553,17 @@ test('original Mihrap Akademisi backup maps real lessons and preserves local edi
   assert.equal(exported.practiceChecks?.['m0-c0:1'], true);
 });
 
-test('live integrations use fixed HTTPS Cloudflare origins for the six verified applications', async () => {
-  const { LIVE_APPLICATIONS } = await import('../../integrations/shared/liveApplications.ts');
-  const ids = new Set(EXISTING_APPS_LIST.map(({ appId }) => appId));
-  assert.equal(Object.values(LIVE_APPLICATIONS).filter((app) => app.embedded).length, 6);
-  assert.equal(LIVE_APPLICATIONS['siir-deryasi'].embedded, false);
-  assert.ok(Object.entries(LIVE_APPLICATIONS).every(([id, app]) =>
-    ids.has(id) && new URL(app.url).protocol === 'https:' && new URL(app.url).hostname.endsWith('.pages.dev')));
+test('every integration opens its own published URL or an isolated workspace path', async () => {
+  const { INDEPENDENT_APPLICATIONS, independentApplicationHref } = await import('../../integrations/shared/liveApplications.ts');
+  assert.equal(Object.keys(INDEPENDENT_APPLICATIONS).length, 8);
+  for (const { appId } of EXISTING_APPS_LIST) {
+    const target = independentApplicationHref(appId);
+    if (appId === 'automusicpro' || appId === 'tekamul-yolunda') {
+      assert.equal(target, `/uygulamalar/${appId}`);
+    } else {
+      assert.equal(new URL(target).protocol, 'https:');
+    }
+  }
 });
 
 test('independent library, quote, poetry and habit backups produce usable local records', async () => {
