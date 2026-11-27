@@ -24,7 +24,9 @@ GitHub deposu `ahmedozdemir99/Dijital-evren`, üretim dalı `main`. Proje kökü
 
 ## Evren Asistanı
 
-Sunucuya `GEMINI_API_KEY`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` ve virgülle ayrılmış Supabase kullanıcı UUID’lerini içeren `AI_ALLOWED_USER_IDS` verin. İsterseniz `GEMINI_MODEL` ayarlayın. Sunucu Supabase oturumunu doğrular ve izin listesini kontrol eder. `GEMINI_API_KEY` değerini hiçbir `VITE_` değişkenine veya depoya eklemeyin. Yalnızca mevcut ve kullanılmasına izin verilen ücretsiz kapasiteyi yapılandırın. İstemci kayıt özeti eklemek için soru başına açık seçim sunar.
+`dijital-evren.pages.dev` yayını, uygulamanın mevcut Supabase projesini kullanır. Cloudflare Pages projesindeki **Settings → Variables and Secrets → Production** bölümüne mevcut ücretsiz Google AI Studio projesinin `GEMINI_API_KEY` değerini şifreli secret olarak ekleyin. `AI_ALLOWED_USER_IDS` değişkenine erişmesine izin verilen Supabase kullanıcı UUID’lerini virgülle ayırarak yazın. Gerekirse `GEMINI_MODEL` ile ücretsiz kotası bulunan modeli seçin ve üretimi yeniden dağıtın.
+
+Yerel ve diğer yayın ortamlarında ayrıca `SUPABASE_URL` ve `SUPABASE_PUBLISHABLE_KEY` sağlanır. Asistan Supabase oturumunu ve izin listesini doğrular. Anahtarları istemciye göndermeyin veya depoya eklemeyin. İstemci kayıt özeti eklemek için soru başına açık seçim sunar.
 
 ## Doğrulama
 

@@ -1,4 +1,4 @@
-import { isAssistantConfigured, type AssistantEnv } from '../health';
+import { getAssistantConfig, type AssistantEnv } from '../health';
 
 const MAX_REQUEST_BYTES = 48 * 1024;
 const lastRequests = new Map<string, number>();
@@ -26,7 +26,8 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: A
   const reply = (body: object, status = 200) => Response.json(body, {
     status, headers: { 'Cache-Control': 'no-store' },
   });
-  if (!isAssistantConfigured(env)) return reply({ error: 'Evren Asistanı sunucuda yapılandırılmadı.' }, 503);
+  const config = getAssistantConfig(env, request);
+  if (!config) return reply({ error: 'Evren Asistanı için sunucu kurulumu gerekiyor.' }, 503);
   const authorization = request.headers.get('Authorization');
   if (!authorization?.startsWith('Bearer ') || authorization.length > 8192) {
     return reply({ error: 'Yetkili Supabase oturumu gerekli.' }, 401);
@@ -34,16 +35,14 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: A
 
   let userId: string;
   try {
-    const url = new URL('/auth/v1/user', env.SUPABASE_URL);
-    if (url.protocol !== 'https:') throw new Error('Invalid auth URL');
-    const auth = await fetch(url, {
-      headers: { Authorization: authorization, apikey: env.SUPABASE_PUBLISHABLE_KEY! },
+    const auth = await fetch(config.authUrl, {
+      headers: { Authorization: authorization, apikey: config.publishableKey },
       redirect: 'error', signal: AbortSignal.timeout(5000),
     });
     if (auth.status === 401 || auth.status === 403) return reply({ error: 'Oturum geçersiz veya süresi dolmuş.' }, 401);
     if (!auth.ok) throw new Error('Auth unavailable');
     const user = await auth.json() as { id?: string; is_anonymous?: boolean };
-    if (!user.id || user.is_anonymous || !env.AI_ALLOWED_USER_IDS!.split(',').map((id) => id.trim()).includes(user.id)) {
+    if (!user.id || user.is_anonymous || !config.allowedUsers.has(user.id)) {
       return reply({ error: 'Bu hesap için asistan erişimi açılmamış.' }, 403);
     }
     userId = user.id;
@@ -77,10 +76,9 @@ export const onRequestPost = async ({ request, env }: { request: Request; env: A
   lastRequests.set(userId, now);
 
   try {
-    const model = env.GEMINI_MODEL || 'gemini-2.5-flash';
-    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(model) + ':generateContent', {
+    const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + encodeURIComponent(config.model) + ':generateContent', {
       method: 'POST', signal: AbortSignal.timeout(25000),
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': env.GEMINI_API_KEY! },
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': config.apiKey },
       body: JSON.stringify({
         contents: [...history, { role: 'user', parts: [{ text: [activeModule && 'Modül: ' + activeModule,
           context && 'Kullanıcı bağlamı: ' + context, prompt].filter(Boolean).join('\n\n') }] }],

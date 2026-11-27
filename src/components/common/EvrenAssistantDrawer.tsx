@@ -12,6 +12,14 @@ interface ChatMessage {
   generatedNotice?: string;
 }
 
+type AssistantStatus = 'checking' | 'ready' | 'unconfigured' | 'offline';
+const statusText: Record<AssistantStatus, string> = {
+  checking: 'Asistanın sunucusu denetleniyor.',
+  ready: 'Yanıtlar onayınızla notlara kaydedilir.',
+  unconfigured: 'Evren Asistanı için sunucu kurulumu gerekiyor.',
+  offline: 'Asistan sunucusuna ulaşılamadı.',
+};
+
 export function EvrenAssistantDrawer() {
   const location = useLocation();
   const {
@@ -27,18 +35,27 @@ export function EvrenAssistantDrawer() {
   const [prompt, setPrompt] = useState('');
   const [shareContext, setShareContext] = useState(false);
   const [sending, setSending] = useState(false);
-  const [aiServerConfigured, setAiServerConfigured] = useState<boolean | null>(null);
+  const [status, setStatus] = useState<AssistantStatus>('checking');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [savedFeedback, setSavedFeedback] = useState<string | null>(null);
 
   const activeModule = MODULES.find((m) => location.pathname.includes(m.id));
+  const canAsk = preferences.aiAssistantEnabled && status === 'ready' && !sending;
 
   useEffect(() => {
     if (!aiDrawerOpen) return;
-    fetch('/api/health')
-      .then((r) => r.json())
-      .then((d) => setAiServerConfigured(Boolean(d.aiConfigured)))
-      .catch(() => setAiServerConfigured(false));
+    const controller = new AbortController();
+    setStatus('checking');
+    fetch('/api/health', { cache: 'no-store', signal: controller.signal })
+      .then(async (response) => {
+        if (!response.ok) throw new Error('Health check failed');
+        const health = await response.json();
+        if (!controller.signal.aborted) setStatus(health.aiConfigured === true ? 'ready' : 'unconfigured');
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setStatus('offline');
+      });
+    return () => controller.abort();
   }, [aiDrawerOpen]);
 
   if (!aiDrawerOpen) return null;
@@ -65,7 +82,7 @@ export function EvrenAssistantDrawer() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!prompt.trim() || sending || !preferences.aiAssistantEnabled) return;
+    if (!canAsk || !prompt.trim()) return;
 
     const userMsg: ChatMessage = {
       id: `u-${Date.now()}`,
@@ -157,19 +174,15 @@ export function EvrenAssistantDrawer() {
         </button>
       </div>
 
-      <div className="px-5 py-2.5 bg-[#EFECE5]/60 dark:bg-[#10151E]/60 border-b border-black/10 dark:border-white/10 text-xs text-[#546070] dark:text-[#9BA7B6]">
-        {!preferences.aiAssistantEnabled
-          ? 'Asistan Ayarlardan devre dışı bırakıldı.'
-          : aiServerConfigured === false
-            ? 'Sunucu yapılandırması bekleniyor.'
-            : 'Üretilen yanıtlar kaynaklı kayıtlarınızdan ayrıdır ve onayınız olmadan kaydedilmez.'}
+      <div role="status" className="px-5 py-2.5 bg-[#EFECE5]/60 dark:bg-[#10151E]/60 border-b border-black/10 dark:border-white/10 text-xs text-[#546070] dark:text-[#9BA7B6]">
+        {preferences.aiAssistantEnabled ? statusText[status] : 'Asistan Ayarlardan devre dışı bırakıldı.'}
       </div>
 
       <div className="flex-1 overflow-y-auto p-5 space-y-4">
         {messages.length === 0 ? (
           <div className="space-y-3 text-sm text-[#546070] dark:text-[#9BA7B6]">
             <p>
-              Evren Asistanı ile kitaplarınız, alıntılarınız, kavramlarınız ve izin verdiğiniz modül
+              Evren Asistanı ile kitaplarınız, alıntılarınız ve izin verdiğiniz modül
               kayıtları arasında bağlantı önerileri veya Sokratik sorular talep edebilirsiniz.
             </p>
             <div className="space-y-2 pt-2">
@@ -177,8 +190,9 @@ export function EvrenAssistantDrawer() {
                 <button
                   key={i}
                   type="button"
+                  disabled={!canAsk}
                   onClick={() => setPrompt(qp)}
-                  className="w-full text-left px-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-[#141923] dark:text-[#F1F3F5]"
+                  className="w-full text-left px-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 text-[#141923] dark:text-[#F1F3F5] disabled:opacity-50"
                 >
                   {qp}
                 </button>
@@ -227,7 +241,7 @@ export function EvrenAssistantDrawer() {
       <div className="px-4 pt-2 text-sm">
         <p>Sorunuz, yanıt üretmek için Gemini’ye gönderilir. <Link to="/ayarlar" onClick={() => setAiDrawerOpen(false)} className="underline">Oturum ve izin ayarları</Link></p>
         <label className="my-2 flex min-h-8 items-center gap-2">
-          <input type="checkbox" checked={shareContext} disabled={sending} onChange={(event) => setShareContext(event.target.checked)} />
+          <input type="checkbox" checked={shareContext} disabled={!canAsk} onChange={(event) => setShareContext(event.target.checked)} />
           Bu soruya izinli kayıt özetlerini ve son konuşmayı ekle
         </label>
       </div>
@@ -241,17 +255,17 @@ export function EvrenAssistantDrawer() {
           maxLength={4000}
           aria-label="Asistana soru"
           onChange={(e) => setPrompt(e.target.value)}
-          disabled={!preferences.aiAssistantEnabled || sending}
+          disabled={!canAsk}
           placeholder={
-            preferences.aiAssistantEnabled
+            status === 'ready' && preferences.aiAssistantEnabled
               ? 'Düşünsel soru veya özet isteği yazın...'
-              : 'Asistan devre dışı'
+              : 'Asistan şu anda kullanılamıyor'
           }
           className="min-w-0 flex-1 px-3 py-2 text-sm rounded-lg bg-[#EFECE5] dark:bg-[#10151E] border border-black/10 dark:border-white/10 text-[#141923] dark:text-[#F1F3F5] focus:outline-none focus:border-[#8C6B32] dark:focus:border-[#D6B782]"
         />
         <button
           type="submit"
-          disabled={!preferences.aiAssistantEnabled || sending || !prompt.trim()}
+          disabled={!canAsk || !prompt.trim()}
           className="p-2.5 rounded-lg bg-[#8C6B32] dark:bg-[#D6B782] text-white dark:text-[#10151E] disabled:opacity-40 hover:opacity-90 transition-opacity"
           aria-label="Gönder"
         >
