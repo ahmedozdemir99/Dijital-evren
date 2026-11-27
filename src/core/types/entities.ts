@@ -237,6 +237,11 @@ export interface NotificationItem {
   createdAt: string;
 }
 
+export interface ApplicationProgress {
+  metrics: { label: string; value: number | string }[];
+  recent?: { label: string; entries: { id: string; title: string; detail?: string }[] }[];
+}
+
 export interface ExternalAppConfig {
   appId: string;
   name: string;
@@ -251,6 +256,7 @@ export interface ExternalAppConfig {
   disabled?: boolean;
   status: 'not_configured' | 'ready_for_import' | 'configured';
   lastSyncAt?: string;
+  sourceProgress?: ApplicationProgress;
   lastTestAt?: string;
   lastTestMessage?: string;
   errorHistory?: Array<{ timestamp: string; message: string }>;

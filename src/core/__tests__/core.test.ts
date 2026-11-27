@@ -589,34 +589,37 @@ test('application links use the verified publications and the public academy rou
   }
 });
 
-test('the application panel shows real reading, recent records and imported progress without demo data', async () => {
+test('the application panel snapshots source imports and ignores local records', async () => {
   const { summarizeApplicationProgress } = await import('../services/applicationProgress.ts');
-  const day = '2026-11-27';
-  const older = '2026-11-20';
-  const book: Book = { id: 'b1', title: 'Kalıcı kitap', author: 'Yazar', category: 'Roman', status: 'okunuyor',
-    currentPage: 35, totalPages: 100, createdAt: older, updatedAt: day };
-  const quote: Quote = { id: 'q1', text: 'Özlü bir söz', author: 'Yazar', sourceTitle: 'Kaynak',
-    tags: ['Özlü Sözler'], isFavorite: false, createdAt: day, updatedAt: day };
-  const record = { id: 'habit', moduleId: 'tekamul-yolunda', entityType: 'habit', title: 'Okuma', category: '',
-    tags: [], privacyDomain: 'kisisel' as const, isFavorite: false, isArchived: false, createdAt: day, updatedAt: day,
-    payload: { completedDates: [day] } };
-  const summary = summarizeApplicationProgress({
-    books: [book, { ...book, id: 'demo', title: 'Örnek kitap', isDemo: true }, { ...book, id: 'archived', isArchived: true }],
-    quotes: [quote, { ...quote, id: 'regular', tags: [] }],
-    moduleRecords: [
-      record,
-      { ...record, id: 'word', moduleId: 'alinti-defterim', entityType: 'word_entry', title: 'Hikmet', payload: { meaningToday: 'Bilgelik' } },
-      { ...record, id: 'lesson', moduleId: 'mihrap-ve-minber', entityType: 'mihrap_academy_backup', payload: { version: 5, completed: { '0:0': true, '99:0': true } } },
-    ],
-  }, day);
-  const summaries = new Map(summary.map((item) => [item.appId, item]));
-  assert.equal(summaries.get('dijital-kutuphanem')?.recent?.[0].entries[0].detail, 'Yazar · 35/100 sayfa');
-  assert.deepEqual(summaries.get('dijital-kutuphanem')?.recent?.[1].entries.map((entry) => entry.id), ['b1']);
-  assert.deepEqual(summaries.get('alinti-defterim')?.metrics.map((metric) => metric.value), [1, 1, 1]);
-  assert.equal(summaries.get('alinti-defterim')?.recent?.[1].entries[0].href, '/entegrasyonlar/alinti-defterim#word');
-  assert.equal(summaries.get('tekamul-yolunda')?.metrics[0].value, '1/1');
-  assert.match(String(summaries.get('mihrap-ve-minber')?.metrics[0].value), /^1\/[1-9]\d*$/);
-  assert.equal(summaries.has('bilge-akademi'), false);
+  const { prepareExternalImport } = await import('../services/externalImports.ts');
+  const read = (id: string, data: object) => prepareExternalImport(
+    EXISTING_APPS_LIST.find((app) => app.appId === id)!, JSON.stringify(data),
+  );
+  const library = await read('dijital-kutuphanem', {
+    books: [{ id: 'book', title: 'Kaynak kitap', author: 'Yazar', status: 'reading', currentPage: 35, totalPages: 100 }],
+  });
+  const local = { ...library.books[0], id: 'local-book', title: 'Yerel kitap', currentPage: 80 };
+  const summary = summarizeApplicationProgress('dijital-kutuphanem', { ...library, books: [...library.books, local] });
+  assert.deepEqual(summary.metrics.map(({ value }) => value), [1, 0]);
+  assert.equal(summary.recent?.[0].entries[0].detail, '35. sayfa');
+  library.books[0].currentPage = 90;
+  assert.equal(summary.recent?.[0].entries[0].detail, '35. sayfa');
+  assert.deepEqual(summarizeApplicationProgress('dijital-kutuphanem', { ...library, books: [local] }).metrics, []);
+  const quotes = await read('alinti-defterim', {
+    quotes: [{ text: 'Özlü söz', category: 'Özlü Sözler' }, { text: 'Alıntı' }],
+    dictionary: [{ word: 'Hikmet', meaning: 'Bilgelik' }],
+  });
+  assert.deepEqual(summarizeApplicationProgress('alinti-defterim', quotes).metrics.map(({ value }) => value), [1, 1, 1]);
+  const academy = await read('mihrap-ve-minber', {
+    version: 5, completed: { '0:0': true, '99:0': true },
+  });
+  assert.equal(summarizeApplicationProgress('mihrap-ve-minber', academy).metrics[0].value, 1);
+  assert.deepEqual(summarizeApplicationProgress('mihrap-ve-minber', { ...academy, records: [] }).metrics, []);
+  const poetry = await read('siir-deryasi', {
+    app: 'siir-deryasi', ownPoems: [], progress: { poem: { done: true } },
+  });
+  assert.equal(summarizeApplicationProgress('siir-deryasi', poetry).metrics[1].value, 1);
+  assert.deepEqual(summarizeApplicationProgress('bilge-akademi', library).metrics, []);
 });
 
 test('independent library, quote, poetry and habit backups produce usable local records', async () => {
