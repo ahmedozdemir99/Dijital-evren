@@ -555,10 +555,11 @@ test('original Mihrap Akademisi backup maps real lessons and preserves local edi
 
 test('every integration opens its own published URL or an isolated workspace path', async () => {
   const { INDEPENDENT_APPLICATIONS, independentApplicationHref } = await import('../../integrations/shared/liveApplications.ts');
-  assert.equal(Object.keys(INDEPENDENT_APPLICATIONS).length, 8);
+  assert.equal(Object.keys(INDEPENDENT_APPLICATIONS).length, 9);
+  assert.equal(independentApplicationHref('automusicpro'), 'https://automusic-pro.ai.studio/');
   for (const { appId } of EXISTING_APPS_LIST) {
     const target = independentApplicationHref(appId);
-    if (appId === 'automusicpro' || appId === 'tekamul-yolunda') {
+    if (appId === 'tekamul-yolunda') {
       assert.equal(target, `/uygulamalar/${appId}`);
     } else {
       assert.equal(new URL(target).protocol, 'https:');
