@@ -6,7 +6,6 @@ import {
   Calendar,
   ChevronLeft,
   ChevronRight,
-  Compass,
   FolderHeart,
   Grid2X2,
   Home,
@@ -35,6 +34,32 @@ const CORE_FLOW_IDS = new Set([
   'zihin-atlasi',
   'kendi-ansiklopedim',
 ]);
+
+const primaryMenu = [
+  { to: '/', label: 'Ana Kontrol Paneli', mobileLabel: 'Panel', icon: Home, color: 'amber' },
+  { to: '/moduller', label: 'Modül Dizini', mobileLabel: 'Modüller', icon: Grid2X2, color: 'blue' },
+  { to: '/takvim', label: 'Ortak Takvim', mobileLabel: 'Takvim', icon: Calendar, color: 'green' },
+  { to: '/koleksiyonlar', label: 'Koleksiyonlar', icon: FolderHeart, color: 'rose' },
+  { to: '/medya', label: 'Medya Merkezi', icon: Paperclip, color: 'cyan' },
+];
+
+const secondaryMenu = [
+  { to: '/entegrasyonlar', label: 'Entegrasyonlar', mobileLabel: 'Uygulamalar', icon: Link2, color: 'violet' },
+  { to: '/ayarlar', label: 'Ayarlar', mobileLabel: 'Ayarlar', icon: Settings, color: 'orange' },
+];
+
+const mobileMenu = [...primaryMenu, ...secondaryMenu].filter(({ mobileLabel }) => mobileLabel);
+
+function SidebarLink({ item, collapsed }: { item: (typeof mobileMenu)[number]; collapsed: boolean }) {
+  const { to, label, icon: Icon, color } = item;
+  return (
+    <NavLink to={to} end={to === '/'} data-menu-color={color} aria-label={label} title={collapsed ? label : undefined}
+      className="menu-link flex min-h-11 items-center gap-3 rounded-full px-3 py-2 text-sm font-semibold">
+      <Icon aria-hidden="true" className="size-[1.125rem] shrink-0" />
+      {!collapsed && <span className="truncate">{label}</span>}
+    </NavLink>
+  );
+}
 
 export function AppShell({ children }: AppShellProps) {
   const location = useLocation();
@@ -109,13 +134,6 @@ export function AppShell({ children }: AppShellProps) {
     return 'Dijital Evrenim';
   })();
 
-  const navLinkCls = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-      isActive
-        ? 'bg-[#8C6B32]/12 dark:bg-[#D6B782]/14 text-[#8C6B32] dark:text-[#D6B782] font-medium'
-        : 'text-[#546070] dark:text-[#9BA7B6] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#141923] dark:hover:text-[#F1F3F5]'
-    }`;
-
   return (
     <div className="min-h-screen flex bg-[#F7F5F0] dark:bg-[#10151E] text-[#141923] dark:text-[#F1F3F5]">
       {/* Desktop Collapsible Sidebar */}
@@ -149,31 +167,8 @@ export function AppShell({ children }: AppShellProps) {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-2.5 py-4 space-y-5" aria-label="Ana menü">
-          <div className="space-y-1">
-            <NavLink to="/" end className={navLinkCls}>
-              <Home className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="whitespace-nowrap truncate">Ana Kontrol Paneli</span>}
-            </NavLink>
-
-            <NavLink to="/moduller" className={navLinkCls}>
-              <Grid2X2 className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="whitespace-nowrap truncate">Modül Dizini</span>}
-            </NavLink>
-
-            <NavLink to="/takvim" className={navLinkCls}>
-              <Calendar className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="whitespace-nowrap truncate">Ortak Takvim</span>}
-            </NavLink>
-
-            <NavLink to="/koleksiyonlar" className={navLinkCls}>
-              <FolderHeart className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="whitespace-nowrap truncate">Koleksiyonlar</span>}
-            </NavLink>
-
-            <NavLink to="/medya" className={navLinkCls}>
-              <Paperclip className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="whitespace-nowrap truncate">Medya Merkezi</span>}
-            </NavLink>
+          <div className="space-y-1.5">
+            {primaryMenu.map((item) => <SidebarLink key={item.to} item={item} collapsed={collapsed} />)}
           </div>
 
           {/* 3 Ana Alan ve 6 Tematik Merkez */}
@@ -185,13 +180,8 @@ export function AppShell({ children }: AppShellProps) {
                   {!collapsed && (
                     <NavLink
                       to={`/alan/${domain.id}`}
-                      className={({ isActive }) =>
-                        `flex items-center justify-between px-3 pb-0.5 pt-1 text-[11px] font-semibold tracking-wider uppercase transition-colors ${
-                          isActive
-                            ? 'text-[#8C6B32] dark:text-[#D6B782]'
-                            : 'text-[#546070] dark:text-[#9BA7B6] hover:text-[#141923] dark:hover:text-[#F1F3F5]'
-                        }`
-                      }
+                      data-menu-color={domain.id}
+                      className="menu-link flex min-h-9 items-center rounded-full px-3 text-[11px] font-semibold tracking-wider uppercase"
                     >
                       <span>
                         {domain.romanNumeral}. {domain.name}
@@ -207,13 +197,8 @@ export function AppShell({ children }: AppShellProps) {
                         key={center.id}
                         to={`/merkez/${center.id}`}
                         title={`${domain.romanNumeral}. ${domain.name} / ${center.name} — ${center.subtitle}`}
-                        className={({ isActive }) =>
-                          `flex items-center justify-between gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                            isActive
-                              ? 'bg-white dark:bg-[#1C2633] text-[#141923] dark:text-[#F1F3F5] font-medium border border-black/10 dark:border-white/10'
-                              : 'text-[#546070] dark:text-[#9BA7B6] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#141923] dark:hover:text-[#F1F3F5]'
-                          }`
-                        }
+                        data-menu-color={center.id}
+                        className="menu-link flex min-h-10 items-center justify-between gap-2 rounded-full px-3 py-1.5 text-sm"
                       >
                         <span className="flex items-center gap-3 min-w-0">
                           <span
@@ -248,13 +233,8 @@ export function AppShell({ children }: AppShellProps) {
                 key={mod.id}
                 to={mod.route}
                 title={mod.name}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-1.5 rounded-lg text-sm transition-colors ${
-                    isActive
-                      ? 'bg-[#71C6BD]/15 text-[#141923] dark:text-[#71C6BD] font-medium'
-                      : 'text-[#546070] dark:text-[#9BA7B6] hover:bg-black/5 dark:hover:bg-white/5 hover:text-[#141923] dark:hover:text-[#F1F3F5]'
-                  }`
-                }
+                data-menu-color={mod.centerId}
+                className="menu-link flex min-h-10 items-center gap-3 rounded-full px-3 py-1.5 text-sm"
               >
                 {mod.id === 'dijital-kutuphanem' ? (
                   <BookOpen className="w-4 h-4 shrink-0" />
@@ -268,16 +248,8 @@ export function AppShell({ children }: AppShellProps) {
             ))}
           </div>
 
-          <div className="space-y-1 pt-2 border-t border-black/10 dark:border-white/10">
-            <NavLink to="/entegrasyonlar" className={navLinkCls}>
-              <Link2 className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="truncate">Entegrasyonlar</span>}
-            </NavLink>
-
-            <NavLink to="/ayarlar" className={navLinkCls}>
-              <Settings className="w-4 h-4 shrink-0" />
-              {!collapsed && <span className="truncate">Ayarlar</span>}
-            </NavLink>
+          <div className="space-y-1.5 border-t border-black/10 pt-2 dark:border-white/10">
+            {secondaryMenu.map((item) => <SidebarLink key={item.to} item={item} collapsed={collapsed} />)}
           </div>
         </nav>
       </aside>
@@ -413,79 +385,16 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 min-h-[calc(3.75rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-white/95 dark:bg-[#141B26]/95 backdrop-blur-md border-t border-black/10 dark:border-white/10 grid grid-cols-5"
+        className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 gap-1 border-t border-black/10 bg-white/95 px-1.5 pt-1.5 pb-[calc(0.375rem+env(safe-area-inset-bottom))] backdrop-blur-md dark:border-white/10 dark:bg-[#141B26]/95 md:hidden"
         aria-label="Mobil navigasyon"
       >
-        <NavLink
-          to="/"
-          end
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap ${
-              isActive
-                ? 'text-[#8C6B32] dark:text-[#D6B782] font-medium'
-                : 'text-[#546070] dark:text-[#9BA7B6]'
-            }`
-          }
-        >
-          <Home className="w-4 h-4" />
-          <span>Panel</span>
-        </NavLink>
-
-        <NavLink
-          to="/moduller"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap ${
-              isActive
-                ? 'text-[#8C6B32] dark:text-[#D6B782] font-medium'
-                : 'text-[#546070] dark:text-[#9BA7B6]'
-            }`
-          }
-        >
-          <Compass className="w-4 h-4" />
-          <span>Modüller</span>
-        </NavLink>
-
-        <NavLink
-          to="/takvim"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap ${
-              isActive
-                ? 'text-[#8C6B32] dark:text-[#D6B782] font-medium'
-                : 'text-[#546070] dark:text-[#9BA7B6]'
-            }`
-          }
-        >
-          <Calendar className="w-4 h-4" />
-          <span>Takvim</span>
-        </NavLink>
-
-        <NavLink
-          to="/entegrasyonlar"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap ${
-              isActive
-                ? 'text-[#8C6B32] dark:text-[#D6B782] font-medium'
-                : 'text-[#546070] dark:text-[#9BA7B6]'
-            }`
-          }
-        >
-          <Link2 className="w-4 h-4" />
-          <span>Uygulamalar</span>
-        </NavLink>
-
-        <NavLink
-          to="/ayarlar"
-          className={({ isActive }) =>
-            `flex flex-col items-center justify-center gap-0.5 text-[11px] whitespace-nowrap ${
-              isActive
-                ? 'text-[#8C6B32] dark:text-[#D6B782] font-medium'
-                : 'text-[#546070] dark:text-[#9BA7B6]'
-            }`
-          }
-        >
-          <Settings className="w-4 h-4" />
-          <span>Ayarlar</span>
-        </NavLink>
+        {mobileMenu.map(({ to, mobileLabel, icon: Icon, color }) => (
+          <NavLink key={to} to={to} end={to === '/'} data-menu-color={color}
+            className="menu-link flex min-h-16 min-w-0 flex-col items-center justify-center gap-1 rounded-full text-[0.625rem] font-semibold min-[375px]:text-[0.6875rem]">
+            <Icon aria-hidden="true" className="size-5 shrink-0" />
+            <span className="w-full break-words px-0.5 text-center leading-tight">{mobileLabel}</span>
+          </NavLink>
+        ))}
       </nav>
     </div>
   );
