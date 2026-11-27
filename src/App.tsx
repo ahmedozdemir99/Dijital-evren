@@ -4,9 +4,19 @@ import { ModuleErrorBoundary } from './components/common/ModuleErrorBoundary';
 import { AppShell } from './components/layout/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { IntegrationsPage } from './pages/IntegrationsPage';
+import { independentApplicationHref } from './integrations/shared/liveApplications';
 import { useAppStore } from './store/useAppStore';
 
 // Core Ecosystem Pages
+function MihrapApplicationRedirect() {
+  const href = independentApplicationHref('mihrap-ve-minber');
+  useEffect(() => {
+    window.location.replace(href);
+  }, [href]);
+
+  return <a href={href} className="underline">Mihrap ve Minber’i aç</a>;
+}
+
 const IndependentWorkspacePage = lazy(() =>
   import('./integrations/shared/IndependentWorkspacePage').then((m) => ({ default: m.IndependentWorkspacePage }))
 );
@@ -41,12 +51,6 @@ const AutoMusicProModule = lazy(() =>
 // Tekâmül (3 Modules)
 const SelfGrowthModule = lazy(() =>
   import('./modules/tekamul/SelfGrowthModule').then((m) => ({ default: m.SelfGrowthModule }))
-);
-const MihrapAcademyPage = lazy(() =>
-  import('./integrations/mihrap/MihrapAcademyPage').then((m) => ({ default: m.MihrapAcademyPage }))
-);
-const MihrapMinberModule = lazy(() =>
-  import('./modules/tekamul/MihrapMinberModule').then((m) => ({ default: m.MihrapMinberModule }))
 );
 const PrayerJourneyModule = lazy(() =>
   import('./modules/tekamul/PrayerJourneyModule').then((m) => ({ default: m.PrayerJourneyModule }))
@@ -165,8 +169,8 @@ export default function App() {
             <Route path="/modul/automusicpro" element={wrap('AutoMusicPro', <AutoMusicProModule />)} />
 
             <Route path="/modul/tekamul-yolunda" element={wrap('Şahsiyet ve Tekâmül', <SelfGrowthModule />)} />
-            <Route path="/modul/mihrap-ve-minber/akademi" element={wrap('Mihrap ve Minber Akademisi', <MihrapAcademyPage />)} />
-            <Route path="/modul/mihrap-ve-minber" element={wrap('Mihrap ve Minber', <MihrapMinberModule />)} />
+            <Route path="/modul/mihrap-ve-minber/akademi" element={<MihrapApplicationRedirect />} />
+            <Route path="/modul/mihrap-ve-minber" element={<MihrapApplicationRedirect />} />
             <Route path="/modul/namaz-yolculugum" element={wrap('Namaz Yolculuğum', <PrayerJourneyModule />)} />
 
             <Route path="/modul/karadeniz-asistani" element={wrap('Karadeniz Asistanı', <KaradenizAssistantModule />)} />
