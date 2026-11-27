@@ -552,3 +552,55 @@ test('original Mihrap Akademisi backup maps real lessons and preserves local edi
   assert.equal(exported.notes?.['m0-c0'], 'Evrenim’de düzenlendi.');
   assert.equal(exported.practiceChecks?.['m0-c0:1'], true);
 });
+
+test('live integrations use fixed HTTPS Cloudflare origins for the six verified applications', async () => {
+  const { LIVE_APPLICATIONS } = await import('../../integrations/shared/liveApplications.ts');
+  const ids = new Set(EXISTING_APPS_LIST.map(({ appId }) => appId));
+  assert.equal(Object.values(LIVE_APPLICATIONS).filter((app) => app.embedded).length, 6);
+  assert.equal(LIVE_APPLICATIONS['siir-deryasi'].embedded, false);
+  assert.ok(Object.entries(LIVE_APPLICATIONS).every(([id, app]) =>
+    ids.has(id) && new URL(app.url).protocol === 'https:' && new URL(app.url).hostname.endsWith('.pages.dev')));
+});
+
+test('independent library, quote, poetry and habit backups produce usable local records', async () => {
+  const { prepareExternalImport } = await import('../services/externalImports.ts');
+  const parse = (id: string, data: object) => prepareExternalImport(EXISTING_APPS_LIST.find((app) => app.appId === id)!, JSON.stringify(data));
+  const words = await parse('alinti-defterim', { dictionary: [{ id: 't', word: 'Söz', meaning: 'Kelam' }] });
+  assert.equal(words.records[0].entityType, 'word_entry');
+  assert.equal((words.records[0].payload as { meaningToday: string }).meaningToday, 'Kelam');
+  const library = await parse('dijital-kutuphanem', {
+    userBooks: [{ id: 'b', title: 'Yerel kitap' }], quotations: [{ bookId: 'b', bookTitle: 'Yerel kitap', quoteText: 'Kitapta geçen söz' }],
+  });
+  assert.equal(library.quotes[0].bookId, library.books[0].id);
+  const poetry = await parse('siir-deryasi', {
+    app: 'siir-deryasi', version: 1, ownPoems: [{ id: 'x', title: 'Şiir', text: 'İlk dize' }],
+    favorites: { x: 1 }, progress: { x: { at: 1234, pct: 55 } }, notes: { x: 'Kendi notum' },
+  });
+  assert.equal(poetry.records[0].isFavorite, true);
+  assert.equal((poetry.records[0].payload as { importedPercent: number }).importedPercent, 55);
+  assert.equal((poetry.records[0].payload as { notes: string }).notes, 'Kendi notum');
+  const habits = await parse('tekamul-yolunda', {
+    version: 5, tasks: {}, dailyHabits: { '2026-11-14-quran': true, '2026-11-13-quran': true, '2026-11-15-quran': false },
+  });
+  const habit = habits.records.find((record) => record.entityType === 'habit')!;
+  assert.deepEqual((habit.payload as { completedDates: string[] }).completedDates, ['2026-11-13', '2026-11-14']);
+});
+
+test('source playlist, kitchen, video and prayer backup values drive the integrated views', async () => {
+  const { prepareExternalImport } = await import('../services/externalImports.ts');
+  const { readKitchenBackup, readMusicPlaylists, readPrayerStudy, readVideoShelf } = await import('../../integrations/shared/importedData.ts');
+  const parse = async (id: string, data: object) => (await prepareExternalImport(EXISTING_APPS_LIST.find((app) => app.appId === id)!, JSON.stringify(data))).records;
+  const playlist = await parse('automusicpro', { app: 'AutoMusic Pro 4', data: { playlists: [{ name: 'Liste', items: [
+    { title: 'Çalınabilir', streamUrl: 'https://audio.example.org/track.mp3' }, { title: 'Geçersiz adres', streamUrl: 'javascript:alert(1)' },
+  ] }] } });
+  assert.equal(readMusicPlaylists(playlist)[0].tracks[0].url, 'https://audio.example.org/track.mp3');
+  assert.equal(readMusicPlaylists(playlist)[0].tracks[1].url, '');
+  const kitchen = readKitchenBackup(await parse('bugun-ne-yesem', { version: 1, selected: ['Un'], custom: [],
+    staples: true, favorites: [], shopping: [{ name: 'Süt', checked: true }] }));
+  assert.deepEqual(kitchen.selected, ['Un']);
+  assert.deepEqual(kitchen.shopping, [{ name: 'Süt', checked: true }]);
+  assert.deepEqual(readVideoShelf(await parse('sohbet-arsivi', {
+    SA_FAVS: ['x'], SA_PROGRESS: { x: { p: 75, done: false } }, SA_NOTES: { x: 'Not' },
+  })), [{ id: 'x', favorite: true, percent: 75, note: 'Not' }]);
+  assert.deepEqual(readPrayerStudy(await parse('namaz-yolculugum', { fatiha: 'practice' })), [{ id: 'fatiha', status: 'practice' }]);
+});

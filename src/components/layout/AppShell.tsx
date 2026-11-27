@@ -82,7 +82,11 @@ export function AppShell({ children }: AppShellProps) {
     if (location.pathname === '/takvim') return 'Ortak Ekosistem Takvimi';
     if (location.pathname === '/koleksiyonlar') return 'Koleksiyonlar ve Favoriler';
     if (location.pathname === '/medya') return 'Dosya ve Medya Merkezi';
-    if (location.pathname === '/entegrasyonlar') return 'Mevcut Uygulama Entegrasyonları';
+    if (location.pathname === '/entegrasyonlar') return 'Bağımsız uygulamalar';
+    if (location.pathname.startsWith('/entegrasyonlar/')) {
+      const app = MODULES.find((module) => module.id === location.pathname.split('/')[2]);
+      return app ? `Bağımsız uygulamalar / ${app.name}` : 'Bağımsız uygulamalar';
+    }
     if (location.pathname === '/ayarlar') return 'Ayarlar ve Veri Güvenliği';
     if (location.pathname.startsWith('/alan/')) {
       const id = location.pathname.replace('/alan/', '');

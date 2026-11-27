@@ -9,7 +9,7 @@ import {
   Upload,
   X,
 } from 'lucide-react';
-import { getCenterById, getModuleById } from '../../core/registry/modules';
+import { EXISTING_APPS_LIST, getCenterById, getModuleById } from '../../core/registry/modules';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
 import { useAppStore } from '../../store/useAppStore';
@@ -140,6 +140,10 @@ export function ModuleWorkbenchHeader({
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
           <Link to={mod.route + '/calisma'} className="inline-flex min-h-11 items-center rounded-lg border border-current/20 px-3 text-sm hover:bg-black/5 dark:hover:bg-white/5">Çalışma defteri</Link>
+          {moduleId !== 'mihrap-ve-minber' && EXISTING_APPS_LIST.some((app) => app.appId === moduleId) &&
+            <Link to={`/entegrasyonlar/${moduleId}`} className="inline-flex min-h-11 items-center rounded-lg border border-current/20 px-3 text-sm">
+              Bağımsız uygulama entegrasyonu
+            </Link>}
           {extraActions}
 
           <button

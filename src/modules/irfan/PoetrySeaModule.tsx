@@ -28,6 +28,7 @@ interface PoemPayload {
   theme: string;
   isPersonal: boolean;
   notes: string;
+  importedPercent?: number;
   readCount?: number;
   lastReadAt?: string;
 }
@@ -566,6 +567,7 @@ export function PoetrySeaModule() {
                       <strong className="text-sm">{p.title}</strong> · {p.payload.poetName}
                     </span>
                     <span className="tabular-nums text-[#546070] dark:text-[#9BA7B6]">
+                      {p.payload.importedPercent !== undefined && `Aktarılan ilerleme %${p.payload.importedPercent} · `}
                       {p.payload.readCount ?? 1} kez okundu ·{' '}
                       {new Date(p.payload.lastReadAt!).toLocaleDateString('tr-TR')}
                     </span>

@@ -40,4 +40,6 @@ NODE_ENV=production bun run start
 
 Modül başlıklarındaki **Çalışma defteri** rehberli alıştırmalar ve kişisel çalışma notları içerir. Notlar ve desteklenen yedek kayıtları Evrensel Arama üzerinden açılır. **Entegrasyonlar** sayfasında her kaynağın tanınan veri biçimi ve varsa canlı adresi gösterilir. İçe aktarma önce önizleme sunar ve aynı kaynak kimliğine bağlı yerel düzenlemeleri korur.
 
+Entegrasyon ekranı, gömülmeye izin veren bağımsız yayınları kendi adresleriyle açar. Bu yayınların hesabı ve tarayıcı depolaması kaynak uygulamaya aittir. Desteklenen dışa aktarımlar ayrıca Dijital Evrenim’in yerel kayıtlarına alınabilir. Mihrap Akademisi’nin dersleri yerleşik çalışır. Şiir Deryası, Tekâmül ve AutoMusicPro için kaynak yedeğini kullanan entegre çalışma alanları vardır.
+
 [Cloudflare ve Supabase kurulum belgesi](CLOUDFLARE.md)

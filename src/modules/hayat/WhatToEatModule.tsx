@@ -5,6 +5,8 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import type { ModuleRecord } from '../../core/types/entities';
+import { useAppStore } from '../../store/useAppStore';
+import { readKitchenBackup } from '../../integrations/shared/importedData';
 import { useModuleStore } from '../../store/useModuleStore';
 
 interface RecipePayload {
@@ -41,8 +43,11 @@ export function WhatToEatModule() {
     [moduleRecords, showDemo]
   );
 
-  const [tab, setTab] = useState<'recipes' | 'pantry' | 'planner'>('recipes');
-  const [pantryInput, setPantryInput] = useState('mısır unu, tereyağı, kaşar, yumurta, domates, soğan');
+  const sourceRecords = useAppStore((state) => state.moduleRecords);
+  const useImportedPantry = searchParams.get('mutfak') === 'aktarim';
+  const [tab, setTab] = useState<'recipes' | 'pantry' | 'planner'>(useImportedPantry ? 'pantry' : 'recipes');
+  const [pantryInput, setPantryInput] = useState(() =>
+    useImportedPantry ? readKitchenBackup(sourceRecords).selected.join(', ') : '');
   const [weeklyPlan, setWeeklyPlan] = useState<Record<string, string>>({});
 
   // New recipe form
