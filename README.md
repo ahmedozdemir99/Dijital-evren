@@ -20,25 +20,24 @@ Edebiyat, şiir, tarih, felsefe, mantık, matematik, bilim, sanat, maneviyat, ki
   - IndexedDB (`DijitalEvrenimDB`, Şema v3) tabanlı kalıcı depolama; `v2 -> v3` geçişinde kapsam dışı bırakılan modüllere ait kullanıcı verileri silinmez, `Ayarlar` üzerinden `legacy_archive` kapsamında JSON olarak dışa aktarılabilir.
   - Gerçek kullanıcı kayıtları ile örnek başlangıç (`isDemo: true`) kayıtları ayrılmıştır.
 - **Ortak Servisler ve Sunucu Katmanı (`server.ts`):**
-  - Evrensel Arama (`Ctrl+K`), Ortak Takvim (`/takvim`), Koleksiyonlar (`/koleksiyonlar`), Medya Merkezi (`/medya`), Bildirimler, Tema Yönetimi (Koyu / Açık / Sistem), Ayarlar, 12 harici uygulama için Entegrasyon Yönetimi (`/entegrasyonlar`) ve isteğe bağlı sunucu taraflı **Evren Asistanı** (`/api/ai/assist`).
+  - Evrensel Arama (`Ctrl+K`), Ortak Takvim (`/takvim`), Koleksiyonlar (`/koleksiyonlar`), Medya Merkezi (`/medya`), Bildirimler, Tema Yönetimi (Koyu / Açık / Sistem), Ayarlar, 11 bağımsız uygulama için Entegrasyon Yönetimi (`/entegrasyonlar`) ve isteğe bağlı sunucu taraflı **Evren Asistanı** (`/api/ai/assist`).
 
 ## Kurulum ve Çalıştırma
 
 ```bash
-npm install
-npm run dev
+bun install --frozen-lockfile
+bun run dev
 ```
 
 Üretim derlemesi, test ve tip kontrolü:
 
 ```bash
-npx tsx --test src/core/__tests__/core.test.ts
-npm run lint
-npm run build
-npm start
+bun run test
+bun run lint
+bun run build
+NODE_ENV=production bun run start
 ```
 
-İsteğe bağlı yapay zekâ asistanı için `.env` dosyasında `GEMINI_API_KEY` tanımlanmalıdır. Anahtar tanımlanmadığında temel modüller ve yerel bilgi akışı kesintisiz çalışmaya devam eder.
+Modül başlıklarındaki **Çalışma defteri** rehberli alıştırmalar ve kişisel çalışma notları içerir. Notlar ve desteklenen yedek kayıtları Evrensel Arama üzerinden açılır. **Entegrasyonlar** sayfasında her kaynağın tanınan veri biçimi ve varsa canlı adresi gösterilir. İçe aktarma önce önizleme sunar ve aynı kaynak kimliğine bağlı yerel düzenlemeleri korur.
 
-
-Not: Akıllı Bileklik kapsam dışıdır; 23 modüllü sürüm için test ve derleme yeniden doğrulanmalıdır.
+[Cloudflare ve Supabase kurulum belgesi](CLOUDFLARE.md)

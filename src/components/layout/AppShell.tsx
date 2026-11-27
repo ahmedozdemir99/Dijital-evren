@@ -400,7 +400,7 @@ export function AppShell({ children }: AppShellProps) {
         </header>
 
         {/* Main Viewport */}
-        <main className="flex-1 px-4 md:px-8 py-6 pb-24 md:pb-10 max-w-[1400px] w-full mx-auto">
+        <main id="main-content" className="mx-auto w-full min-w-0 max-w-[1400px] flex-1 px-3 pb-[calc(6rem+env(safe-area-inset-bottom))] pt-5 sm:px-5 md:px-8 md:pb-10 md:pt-6">
           {children}
         </main>
       </div>
@@ -409,7 +409,7 @@ export function AppShell({ children }: AppShellProps) {
 
       {/* Mobile Bottom Navigation */}
       <nav
-        className="md:hidden fixed bottom-0 inset-x-0 z-40 h-15 bg-white/95 dark:bg-[#141B26]/95 backdrop-blur-md border-t border-black/10 dark:border-white/10 grid grid-cols-5"
+        className="md:hidden fixed bottom-0 inset-x-0 z-40 min-h-[calc(3.75rem+env(safe-area-inset-bottom))] pb-[env(safe-area-inset-bottom)] bg-white/95 dark:bg-[#141B26]/95 backdrop-blur-md border-t border-black/10 dark:border-white/10 grid grid-cols-5"
         aria-label="Mobil navigasyon"
       >
         <NavLink

@@ -144,6 +144,7 @@ export function QuoteNotebookModule() {
           <h1 className="text-3xl font-semibold text-[#141923] dark:text-[#F1F3F5] mt-0.5">
             Alıntı Defterim
           </h1>
+          <Link to="/modul/alinti-defterim/calisma" className="inline-flex min-h-11 items-center text-sm underline">Çalışma defteri</Link>
           <p className="text-sm text-[#546070] dark:text-[#9BA7B6] mt-1">
             Kitaplardan ve düşüncelerden süzülen alıntılar · Benzer kayıt kontrolü ve Zihin Atlası
             bağlantıları.

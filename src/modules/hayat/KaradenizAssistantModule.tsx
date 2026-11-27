@@ -6,7 +6,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface KaradenizPayload {
   province: string;
@@ -24,7 +24,7 @@ export function KaradenizAssistantModule() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { moduleRecords, moduleSettings, recordModuleOpen, addModuleRecord, deleteModuleRecord } =
-    useAppStore();
+    useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('karadeniz-asistani');

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import {
   ArrowDown,
   ArrowRight,
@@ -37,6 +37,7 @@ const DAILY_THOUGHTS = [
 ];
 
 export function DashboardPage() {
+  const [searchParams] = useSearchParams();
   const {
     profile,
     preferences,
@@ -1036,6 +1037,15 @@ export function DashboardPage() {
 
   return (
     <div className="space-y-8">
+      {quickNotes.filter((note) => note.id === searchParams.get('noteId')).map((note) => (
+        <article key={note.id} className="rounded-2xl border border-current/15 p-5">
+          <div className="flex items-start justify-between gap-4">
+            <h2 className="break-words text-xl font-semibold">{note.title}</h2>
+            <Link to="/" className="text-sm underline">Kapat</Link>
+          </div>
+          <p className="mt-2 whitespace-pre-wrap break-words">{note.content}</p>
+        </article>
+      ))}
       {/* Hero Greeting & Date/Time Header */}
       <section className="relative rounded-2xl overflow-hidden border border-black/10 dark:border-white/10 bg-[#10151E]">
         <img

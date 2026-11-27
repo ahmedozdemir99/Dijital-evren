@@ -6,7 +6,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface RiderPayload {
   kind: 'bike' | 'ride' | 'maintenance';
@@ -21,7 +21,7 @@ interface RiderPayload {
 export function BizbizeRidersModule() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { moduleRecords, recordModuleOpen, addModuleRecord, deleteModuleRecord } = useAppStore();
+  const { moduleRecords, recordModuleOpen, addModuleRecord, deleteModuleRecord } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('bizbize-riders');

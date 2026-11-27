@@ -5,7 +5,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface MihrapPayload {
   kind: 'kaynak_metin' | 'hutbe_sohbet' | 'kavram_notu';
@@ -23,7 +23,7 @@ export function MihrapMinberModule() {
     addModuleRecord,
     deleteModuleRecord,
     addQuote,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('mihrap-ve-minber');

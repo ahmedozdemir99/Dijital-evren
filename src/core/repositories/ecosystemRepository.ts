@@ -1,3 +1,4 @@
+import type { ExternalImport } from '../services/externalImports';
 import { EXISTING_APPS_LIST, MODULES } from '../registry/modules';
 import { isSafeDataUrl, localDateIso } from '../services/integrationService';
 import {
@@ -6,8 +7,12 @@ import {
   getAllFromStore,
   getOneFromStore,
   putInStore,
+  mergeLatestRecords,
+  insertNewRecords,
+  restoreRecords,
   putManyInStore,
   STORE_NAMES,
+  type StoreName,
 } from '../storage/indexedDb';
 import type {
   ActivityLog,
@@ -1147,6 +1152,35 @@ export class IndexedDbEcosystemRepository {
     };
   }
 
+  importExternal(data: ExternalImport): Promise<number> {
+    return insertNewRecords([
+      { store: 'books', items: data.books },
+      { store: 'quotes', items: data.quotes },
+      { store: 'module_records', items: data.records },
+    ]);
+  }
+
+  async mergeCloudBackup(bundle: ExportBundle): Promise<void> {
+    if (bundle?.app !== 'Dijital Evrenim' || bundle.scope !== 'full' ||
+        !Number.isInteger(bundle.schemaVersion) || bundle.schemaVersion > CURRENT_SCHEMA_VERSION ||
+        !bundle.data || typeof bundle.data !== 'object') {
+      throw new Error('Bulut yedeği bu sürümle uyumlu değil.');
+    }
+    const data = bundle.data;
+    const entries: Array<[StoreName, unknown]> = [
+      ['books', data.books],
+      ['quotes', data.quotes],
+      ['knowledge_nodes', data.knowledgeNodes],
+      ['entity_relations', data.entityRelations],
+      ['quick_notes', data.quickNotes],
+      ['module_records', data.moduleRecords],
+      ['collections', data.collections],
+      ['attachments', Array.isArray(data.attachments) ? data.attachments.filter((file) => isSafeDataUrl(file?.dataUrl)) : []],
+    ];
+    await mergeLatestRecords(entries.flatMap(([store, items]) =>
+      Array.isArray(items) ? [{ store, keyPath: 'id', items }] : []));
+  }
+
   async importBundle(bundle: ExportBundle, mode: 'replace' | 'merge' = 'replace'): Promise<void> {
     if (
       !bundle ||
@@ -1187,72 +1221,42 @@ export class IndexedDbEcosystemRepository {
 
     if (mode === 'replace') {
       if (scope === 'full') {
-        await Promise.all(STORE_NAMES.map((store) => clearStore(store)));
-        await Promise.all([
-          putInStore('profile', d.profile && typeof d.profile === 'object' ? d.profile : DEFAULT_PROFILE),
-          putInStore(
-            'preferences',
-            d.preferences && typeof d.preferences === 'object' ? d.preferences : DEFAULT_PREFERENCES
-          ),
-          putManyInStore(
-            'module_settings',
-            Array.isArray(d.moduleSettings) && d.moduleSettings.length > 0
-              ? d.moduleSettings
-              : createDefaultModuleSettings()
-          ),
-          putManyInStore(
-            'external_apps',
-            Array.isArray(d.externalApps) && d.externalApps.length > 0
-              ? d.externalApps
-              : EXISTING_APPS_LIST
-          ),
-          putManyInStore('books', safeBooks),
-          putManyInStore('quotes', safeQuotes),
-          putManyInStore('knowledge_nodes', safeNodes),
-          putManyInStore('entity_relations', safeRelations),
-          putManyInStore('quick_notes', safeQuickNotes),
-          putManyInStore('module_records', safeModuleRecords),
-          putManyInStore('collections', safeCollections),
-          putManyInStore('attachments', safeAttachments),
-          putManyInStore('activity_logs', safeActivityLogs),
-          putManyInStore('notifications', safeNotifications),
+        if (!Array.isArray(d.books) || !Array.isArray(d.quotes) || !Array.isArray(d.knowledgeNodes) ||
+            !Array.isArray(d.entityRelations) || !Array.isArray(d.quickNotes)) {
+          throw new Error('Tam yedekte zorunlu kayıt listeleri eksik.');
+        }
+        await restoreRecords([
+          { store: 'profile', items: [d.profile?.id ? d.profile : DEFAULT_PROFILE] },
+          { store: 'preferences', items: [d.preferences?.id ? d.preferences : DEFAULT_PREFERENCES] },
+          { store: 'module_settings', items: d.moduleSettings?.length ? d.moduleSettings : createDefaultModuleSettings() },
+          { store: 'external_apps', items: d.externalApps?.length ? d.externalApps : EXISTING_APPS_LIST },
+          { store: 'books', items: safeBooks },
+          { store: 'quotes', items: safeQuotes },
+          { store: 'knowledge_nodes', items: safeNodes },
+          { store: 'entity_relations', items: safeRelations },
+          { store: 'quick_notes', items: safeQuickNotes },
+          { store: 'module_records', items: safeModuleRecords },
+          { store: 'collections', items: safeCollections },
+          { store: 'attachments', items: safeAttachments },
+          { store: 'activity_logs', items: safeActivityLogs },
+          { store: 'notifications', items: safeNotifications },
         ]);
         return;
       }
 
-      // Module-scoped replace: replace ONLY the targeted module's data without wiping other modules
-      const existingSnap = await this.loadAll();
-      if (scope === 'dijital-kutuphanem') {
-        await clearStore('books');
-        await putManyInStore('books', safeBooks);
-      } else if (scope === 'alinti-defterim') {
-        await clearStore('quotes');
-        await putManyInStore('quotes', safeQuotes);
-      } else if (scope === 'zihin-atlasi') {
-        await clearStore('knowledge_nodes');
-        await putManyInStore('knowledge_nodes', safeNodes);
-      }
-
-      const oldScopedRecords = existingSnap.moduleRecords.filter((r) => r.moduleId === scope);
-      await Promise.all(oldScopedRecords.map((r) => deleteFromStore('module_records', r.id)));
-      await putManyInStore(
-        'module_records',
-        safeModuleRecords.filter((r) => r.moduleId === scope)
-      );
-
-      const oldScopedRelations = existingSnap.entityRelations.filter(
-        (r) => r.fromModule === scope || r.toModule === scope
-      );
-      await Promise.all(oldScopedRelations.map((r) => deleteFromStore('entity_relations', r.id)));
-      await putManyInStore(
-        'entity_relations',
-        safeRelations.filter((r) => r.fromModule === scope || r.toModule === scope)
-      );
-
-      if (Array.isArray(d.moduleSettings)) {
-        const scopedSetting = d.moduleSettings.find((m) => m?.moduleId === scope);
-        if (scopedSetting) await putInStore('module_settings', scopedSetting);
-      }
+      const scopedIds = new Set<string>(scope === 'legacy_archive' ? LEGACY_REMOVED_MODULE_IDS : [scope]);
+      const inModule = (record: { moduleId?: unknown }) => scopedIds.has(String(record.moduleId));
+      const inRelation = (record: { fromModule?: unknown; toModule?: unknown }) =>
+        scopedIds.has(String(record.fromModule)) || scopedIds.has(String(record.toModule));
+      const entries: Parameters<typeof restoreRecords>[0] = [
+        { store: 'module_records', items: safeModuleRecords.filter(inModule), matches: inModule },
+        { store: 'entity_relations', items: safeRelations.filter(inRelation), matches: inRelation },
+        { store: 'activity_logs', items: safeActivityLogs.filter(inModule), matches: inModule },
+      ];
+      if (scope === 'dijital-kutuphanem') entries.push({ store: 'books', items: safeBooks });
+      if (scope === 'alinti-defterim') entries.push({ store: 'quotes', items: safeQuotes });
+      if (scope === 'zihin-atlasi') entries.push({ store: 'knowledge_nodes', items: safeNodes });
+      await restoreRecords(entries);
       return;
     }
 
@@ -1266,6 +1270,7 @@ export class IndexedDbEcosystemRepository {
       putManyInStore('module_records', safeModuleRecords),
       putManyInStore('collections', safeCollections),
       putManyInStore('attachments', safeAttachments),
+      ...scope === 'legacy_archive' ? [putManyInStore('activity_logs', safeActivityLogs)] : [],
     ]);
   }
 

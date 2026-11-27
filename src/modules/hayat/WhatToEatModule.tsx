@@ -5,7 +5,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface RecipePayload {
   kind: 'recipe' | 'pantry';
@@ -19,7 +19,7 @@ const DAYS = ['Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartes
 export function WhatToEatModule() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { moduleRecords, moduleSettings, recordModuleOpen, addModuleRecord, deleteModuleRecord } =
-    useAppStore();
+    useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('bugun-ne-yesem');

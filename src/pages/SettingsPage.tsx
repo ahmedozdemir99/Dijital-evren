@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowUp, Check, Download, RotateCcw, Trash2, Upload } from 'lucide-react';
+import { CloudBackupPanel } from '../components/shared/CloudBackupPanel';
 import { ConfirmDialog } from '../components/common/ConfirmDialog';
 import {
   CURRENT_SCHEMA_VERSION,
@@ -484,6 +485,8 @@ export function SettingsPage() {
           })}
         </div>
       </section>
+
+      <CloudBackupPanel />
 
       {/* 5. Yedekleme, Geri Yükleme ve Veri Silme */}
       <section className="p-6 rounded-xl bg-white dark:bg-[#1C2633] border border-black/10 dark:border-white/10 space-y-5">

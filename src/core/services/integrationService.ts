@@ -87,7 +87,7 @@ export function isSafeDataUrl(raw: string): boolean {
 export function normalizeText(text: string): string {
   return text
     .toLocaleLowerCase('tr-TR')
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .replace(/[^\p{L}\p{N}\p{M}\s]/gu, ' ')
     .replace(/\s+/g, ' ')
     .trim();
 }
@@ -115,6 +115,39 @@ export function findSimilarQuotes(candidateText: string, existingQuotes: Quote[]
   });
 }
 
+export function searchText(text: string): string {
+  return normalizeText(text.normalize('NFC'))
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .replace(/ı/g, 'i');
+}
+
+function searchableDetails(payload: unknown): string {
+  const parts: string[] = [];
+  const visit = (value: unknown, depth: number) => {
+    if (depth > 4 || parts.length >= 80) return;
+    if (typeof value === 'string') {
+      if (!/^(data:|blob:|https?:)/i.test(value)) parts.push(value.slice(0, 2000));
+    } else if (Array.isArray(value)) {
+      value.slice(0, 40).forEach((item) => visit(item, depth + 1));
+    } else if (value && typeof value === 'object') {
+      Object.entries(value).slice(0, 40).forEach(([key, item]) => {
+        if (!/(password|token|secret|key|base64|dataurl|url)$/i.test(key)) visit(item, depth + 1);
+      });
+    }
+  };
+  visit(payload, 0);
+  return parts.join(' ');
+}
+
+export function getRecordRoute(moduleId: string, id: string, type?: string): string {
+  if (type === 'module_study' || type === 'imported_record') return `/modul/${moduleId}/calisma?workspaceId=${encodeURIComponent(id)}`;
+  const key = moduleId === 'dijital-kutuphanem' ? 'bookId'
+    : moduleId === 'alinti-defterim' ? 'quoteId'
+    : moduleId === 'zihin-atlasi' ? 'nodeId' : 'recordId';
+  return `/modul/${moduleId}?${key}=${encodeURIComponent(id)}`;
+}
+
 export function searchEcosystem(
   query: string,
   data: {
@@ -128,196 +161,78 @@ export function searchEcosystem(
   },
   filters: SearchFilters = {}
 ): SearchResultItem[] {
-  const q = query.trim().toLocaleLowerCase('tr-TR');
-  const hasFilter =
-    Boolean(filters.moduleId && filters.moduleId !== 'all') ||
-    Boolean(filters.kind && filters.kind !== 'all') ||
-    Boolean(filters.category) ||
-    Boolean(filters.tag) ||
-    Boolean(filters.dateFrom) ||
-    Boolean(filters.dateTo);
-
+  const q = searchText(query);
+  const terms = [...new Set(q.split(' ').filter(Boolean))];
+  const hasFilter = Object.values(filters).some((value) => value && value !== 'all');
   if (!q && !hasFilter) return [];
 
-  const enabledMap = new Map(data.moduleSettings.map((s) => [s.moduleId, s.enabled]));
+  const disabled = new Set(data.moduleSettings.filter((setting) => !setting.enabled).map((setting) => setting.moduleId));
   const allowPrivate = data.preferences.crossModuleSharing.allowSearchInPrivateDomains;
-
-  const isModuleAllowed = (moduleId: string): boolean => {
-    if (enabledMap.get(moduleId) === false) return false;
-    const mod = MODULES.find((m) => m.id === moduleId);
-    if (!mod) return false;
-    if (!allowPrivate && mod.privacyDomain !== 'genel') return false;
-    return true;
+  const records = new Map((data.moduleRecords ?? []).map((record) => [record.id, record]));
+  const isAllowed = (id: string) => {
+    const mod = getModuleById(id);
+    return Boolean(mod && !disabled.has(id) && (allowPrivate || mod.privacyDomain === 'genel'));
   };
-
-  const results: SearchResultItem[] = [];
-
+  const results: Array<{ item: SearchResultItem; score: number }> = [];
+  const add = (item: SearchResultItem, details = '') => {
+    if (filters.moduleId && filters.moduleId !== 'all' && item.moduleId !== filters.moduleId) return;
+    if (filters.kind && filters.kind !== 'all' && item.kind !== filters.kind) return;
+    if (filters.category && !searchText(item.category ?? '').includes(searchText(filters.category))) return;
+    if (filters.tag && !item.tags?.some((tag) => searchText(tag).includes(searchText(filters.tag!)))) return;
+    if (filters.dateFrom && (!item.date || item.date < filters.dateFrom)) return;
+    if (filters.dateTo && (!item.date || item.date > filters.dateTo)) return;
+    const title = searchText(item.title);
+    const labels = searchText([item.subtitle, item.category, ...(item.tags ?? [])].join(' '));
+    const body = searchText(details);
+    if (!terms.every((term) => title.includes(term) || labels.includes(term) || body.includes(term))) return;
+    const score = q ? (title === q ? 100 : title.startsWith(q) ? 40 : title.includes(q) ? 20 : 0)
+      + terms.reduce((total, term) => total + (title.includes(term) ? 8 : labels.includes(term) ? 3 : 1), 0) : 0;
+    results.push({ item, score });
+  };
+  const date = (value?: string) => value?.slice(0, 10);
   for (const mod of MODULES) {
-    if (!isModuleAllowed(mod.id)) continue;
-    if (
-      !q ||
-      mod.name.toLocaleLowerCase('tr-TR').includes(q) ||
-      mod.shortDescription.toLocaleLowerCase('tr-TR').includes(q)
-    ) {
-      if (q) {
-        results.push({
-          id: mod.id,
-          title: mod.name,
-          subtitle: `${mod.shortDescription}`,
-          kind: 'module',
-          moduleId: mod.id,
-          route: mod.route,
-        });
-      }
-    }
+    if (q && isAllowed(mod.id)) add({
+      id: mod.id, title: mod.name, subtitle: mod.shortDescription, kind: 'module', moduleId: mod.id, route: mod.route,
+    });
   }
-
-  if (isModuleAllowed('dijital-kutuphanem')) {
-    for (const book of data.books) {
-      if (book.isArchived) continue;
-      if (
-        !q ||
-        book.title.toLocaleLowerCase('tr-TR').includes(q) ||
-        book.author.toLocaleLowerCase('tr-TR').includes(q) ||
-        book.category.toLocaleLowerCase('tr-TR').includes(q)
-      ) {
-        results.push({
-          id: book.id,
-          title: book.title,
-          subtitle: `${book.author} · ${book.category}`,
-          kind: 'book',
-          moduleId: 'dijital-kutuphanem',
-          category: book.category,
-          date: book.updatedAt.slice(0, 10),
-          route: `/modul/dijital-kutuphanem?bookId=${encodeURIComponent(book.id)}`,
-          isDemo: book.isDemo,
-        });
-      }
-    }
+  if (isAllowed('dijital-kutuphanem')) for (const book of data.books) {
+    if (book.isArchived) continue;
+    const moduleId = 'dijital-kutuphanem';
+    add({ id: book.id, title: book.title, subtitle: book.author, kind: 'book', moduleId,
+      category: book.category, date: date(book.updatedAt), route: getRecordRoute(moduleId, book.id), isDemo: book.isDemo });
   }
-
-  if (isModuleAllowed('alinti-defterim')) {
-    for (const quote of data.quotes) {
-      if (quote.isArchived) continue;
-      if (
-        !q ||
-        quote.text.toLocaleLowerCase('tr-TR').includes(q) ||
-        quote.author.toLocaleLowerCase('tr-TR').includes(q) ||
-        quote.sourceTitle.toLocaleLowerCase('tr-TR').includes(q) ||
-        quote.tags.some((t) => t.toLocaleLowerCase('tr-TR').includes(q))
-      ) {
-        results.push({
-          id: quote.id,
-          title: quote.text.length > 76 ? `${quote.text.slice(0, 76)}…` : quote.text,
-          subtitle: `${quote.author} · ${quote.sourceTitle}`,
-          kind: 'quote',
-          moduleId: 'alinti-defterim',
-          category: quote.category ?? 'Alıntı',
-          tags: quote.tags,
-          date: quote.updatedAt.slice(0, 10),
-          route: `/modul/alinti-defterim?quoteId=${encodeURIComponent(quote.id)}`,
-          isDemo: quote.isDemo,
-        });
-      }
-    }
+  if (isAllowed('alinti-defterim')) for (const quote of data.quotes) {
+    if (quote.isArchived) continue;
+    const moduleId = 'alinti-defterim';
+    add({ id: quote.id, title: quote.text.length > 76 ? `${quote.text.slice(0, 76)}…` : quote.text,
+      subtitle: `${quote.author} · ${quote.sourceTitle}`, kind: 'quote', moduleId,
+      category: quote.category ?? 'Alıntı', tags: quote.tags, date: date(quote.updatedAt),
+      route: getRecordRoute(moduleId, quote.id), isDemo: quote.isDemo }, quote.text);
   }
-
-  if (isModuleAllowed('zihin-atlasi')) {
-    for (const node of data.knowledgeNodes) {
-      if (
-        !q ||
-        node.title.toLocaleLowerCase('tr-TR').includes(q) ||
-        node.summary.toLocaleLowerCase('tr-TR').includes(q) ||
-        node.tags.some((t) => t.toLocaleLowerCase('tr-TR').includes(q))
-      ) {
-        results.push({
-          id: node.id,
-          title: node.title,
-          subtitle: `Zihin Atlası (${node.nodeType}) · ${node.summary.slice(0, 60)}`,
-          kind: 'knowledge_node',
-          moduleId: 'zihin-atlasi',
-          tags: node.tags,
-          date: node.updatedAt.slice(0, 10),
-          route: `/modul/zihin-atlasi?nodeId=${encodeURIComponent(node.id)}`,
-          isDemo: node.isDemo,
-        });
-      }
-    }
+  if (isAllowed('zihin-atlasi')) for (const node of data.knowledgeNodes) {
+    const source = node.sourceEntityId ? records.get(node.sourceEntityId) : undefined;
+    if (!isAllowed(node.sourceModule)) continue;
+    if (source && (source.isArchived || (source.payload as { hideFromGlobalSearch?: boolean })?.hideFromGlobalSearch === true ||
+      (!allowPrivate && source.privacyDomain !== 'genel'))) continue;
+    const moduleId = 'zihin-atlasi';
+    add({ id: node.id, title: node.title, subtitle: `Zihin Atlası · ${node.nodeType}`, kind: 'knowledge_node',
+      moduleId, tags: node.tags, date: date(node.updatedAt), route: getRecordRoute(moduleId, node.id), isDemo: node.isDemo },
+      node.summary);
   }
-
-  for (const rec of data.moduleRecords ?? []) {
-    if (rec.isArchived) continue;
-    if (!isModuleAllowed(rec.moduleId)) continue;
-    // Hatıralarım / private records marked hidden from search stay excluded
-    const payloadObj = rec.payload as Record<string, unknown>;
-    if (payloadObj?.hideFromGlobalSearch === true) continue;
-    if (rec.privacyDomain !== 'genel' && !allowPrivate) continue;
-
-    const modName = getModuleById(rec.moduleId)?.name ?? rec.moduleId;
-    const textBlob = `${rec.title} ${rec.subtitle ?? ''} ${rec.category} ${rec.tags.join(' ')}`.toLocaleLowerCase('tr-TR');
-    if (!q || textBlob.includes(q)) {
-      results.push({
-        id: rec.id,
-        title: rec.title,
-        subtitle: `${modName} · ${rec.subtitle || rec.category}`,
-        kind: 'record',
-        moduleId: rec.moduleId,
-        category: rec.category,
-        tags: rec.tags,
-        date: rec.date ?? rec.updatedAt.slice(0, 10),
-        route: `/modul/${rec.moduleId}?recordId=${encodeURIComponent(rec.id)}`,
-        isDemo: rec.isDemo,
-      });
-    }
+  for (const rec of records.values()) {
+    if (rec.isArchived || !isAllowed(rec.moduleId) || (rec.payload as { hideFromGlobalSearch?: boolean })?.hideFromGlobalSearch === true) continue;
+    if (!allowPrivate && rec.privacyDomain !== 'genel') continue;
+    add({ id: rec.id, title: rec.title, subtitle: rec.subtitle || getModuleById(rec.moduleId)!.name, kind: 'record',
+      moduleId: rec.moduleId, category: rec.category, tags: rec.tags, date: date(rec.date ?? rec.updatedAt),
+      route: getRecordRoute(rec.moduleId, rec.id, rec.entityType), isDemo: rec.isDemo }, searchableDetails(rec.payload));
   }
-
   for (const note of data.quickNotes) {
-    if (
-      !q ||
-      note.title.toLocaleLowerCase('tr-TR').includes(q) ||
-      note.content.toLocaleLowerCase('tr-TR').includes(q)
-    ) {
-      results.push({
-        id: note.id,
-        title: note.title,
-        subtitle: `Hızlı Not · ${note.content.slice(0, 65)}`,
-        kind: 'quick_note',
-        moduleId: 'idrak',
-        tags: note.tags,
-        date: note.updatedAt.slice(0, 10),
-        route: '/',
-        isDemo: note.isDemo,
-      });
-    }
+    add({ id: note.id, title: note.title, subtitle: 'Hızlı Not', kind: 'quick_note', moduleId: 'idrak',
+      tags: note.tags, date: date(note.updatedAt), route: `/?noteId=${encodeURIComponent(note.id)}`, isDemo: note.isDemo },
+      note.content);
   }
-
-  return results
-    .filter((item) => {
-      if (filters.moduleId && filters.moduleId !== 'all' && item.moduleId !== filters.moduleId) {
-        return false;
-      }
-      if (filters.kind && filters.kind !== 'all' && item.kind !== filters.kind) {
-        return false;
-      }
-      if (
-        filters.category &&
-        !(item.category ?? '').toLocaleLowerCase('tr-TR').includes(filters.category.toLocaleLowerCase('tr-TR'))
-      ) {
-        return false;
-      }
-      if (
-        filters.tag &&
-        !(item.tags ?? []).some((t) =>
-          t.toLocaleLowerCase('tr-TR').includes(filters.tag!.toLocaleLowerCase('tr-TR'))
-        )
-      ) {
-        return false;
-      }
-      if (filters.dateFrom && item.date && item.date < filters.dateFrom) return false;
-      if (filters.dateTo && item.date && item.date > filters.dateTo) return false;
-      return true;
-    })
-    .slice(0, 40);
+  return results.sort((a, b) => b.score - a.score || (b.item.date ?? '').localeCompare(a.item.date ?? '')
+    || a.item.title.localeCompare(b.item.title, 'tr')).slice(0, 40).map(({ item }) => item);
 }
 
 export function getRelationsForEntity(entityId: string, relations: EntityRelation[]): EntityRelation[] {

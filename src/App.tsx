@@ -36,6 +36,10 @@ const MediaCenterPage = lazy(() =>
   import('./pages/MediaCenterPage').then((m) => ({ default: m.MediaCenterPage }))
 );
 
+const ModuleWorkspacePage = lazy(() =>
+  import('./pages/ModuleWorkspacePage').then((m) => ({ default: m.ModuleWorkspacePage }))
+);
+
 // I. ZİHİN -> İrfan (6 Modül)
 const PoetrySeaModule = lazy(() =>
   import('./modules/irfan/PoetrySeaModule').then((m) => ({ default: m.PoetrySeaModule }))
@@ -256,6 +260,7 @@ export default function App() {
             <Route path="/modul/karadeniz-asistani" element={wrap('Karadeniz Asistanı', <KaradenizAssistantModule />)} />
             <Route path="/modul/bugun-ne-yesem" element={wrap('Bugün Ne Yesem', <WhatToEatModule />)} />
 
+            <Route path="/modul/:moduleId/calisma" element={wrap('Çalışma defteri', <ModuleWorkspacePage />)} />
             <Route path="/modul/:moduleId" element={wrap('Modül', <PlannedModulePage />)} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>

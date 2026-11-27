@@ -5,7 +5,7 @@ import { ConfirmDialog } from '../../components/common/ConfirmDialog';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface MathExperimentPayload {
   kind: 'function_plot' | 'fractal' | 'statistics' | 'geometry';
@@ -118,7 +118,7 @@ export function MathLabModule() {
     recordModuleOpen,
     addModuleRecord,
     deleteModuleRecord,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('matematik-laboratuvari');

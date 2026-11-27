@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Check, Loader2, Send, Sparkles, X } from 'lucide-react';
 import { MODULES } from '../../core/registry/modules';
+import { requestAssistant } from '../../core/services/supabaseAdapter';
 import { useAppStore } from '../../store/useAppStore';
 
 interface ChatMessage {
@@ -27,6 +28,7 @@ export function EvrenAssistantDrawer() {
   } = useAppStore();
 
   const [prompt, setPrompt] = useState('');
+  const [shareContext, setShareContext] = useState(false);
   const [sending, setSending] = useState(false);
   const [aiServerConfigured, setAiServerConfigured] = useState<boolean | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -46,34 +48,21 @@ export function EvrenAssistantDrawer() {
 
   const buildPermittedContextSummary = () => {
     const domain = activeModule?.privacyDomain ?? 'genel';
-    if (!preferences.aiPermittedDomains[domain]) {
-      return `Kullanıcı yapay zekâ erişimini "${domain}" gizlilik alanı için kapatmış durumda. Yalnızca genel kavramsal rehberlik ver.`;
-    }
-    if (!preferences.aiPermittedDomains.genel) {
-      return 'Kullanıcı yapay zekâ erişimini genel kayıtlar için kısıtlamış durumda.';
-    }
-
-    const recentBooks = books
-      .slice(0, 4)
-      .map((b) => `- Kitap: "${b.title}" (${b.author})`)
-      .join('\n');
-    const recentQuotes = quotes
-      .slice(0, 3)
-      .map((q) => `- Alıntı (${q.sourceTitle}): "${q.text.slice(0, 100)}"`)
-      .join('\n');
-    const recentNodes = knowledgeNodes
-      .slice(0, 5)
-      .map((n) => `- Kavram/Düğüm: ${n.title}`)
-      .join('\n');
-
+    if (!preferences.aiPermittedDomains[domain]) return '';
+    const generalAllowed = preferences.aiPermittedDomains.genel;
+    const recentBooks = generalAllowed ? books.filter((book) => !book.isArchived)
+      .slice(0, 4).map((book) => `Kitap: ${book.title} (${book.author})`) : [];
+    const recentQuotes = generalAllowed ? quotes.filter((quote) => !quote.isArchived)
+      .slice(0, 3).map((quote) => `Alıntı: ${quote.text.slice(0, 100)}`) : [];
+    const recentNodes = generalAllowed ? knowledgeNodes.filter((node) =>
+      node.sourceModule === 'zihin-atlasi' && !node.sourceEntityId)
+      .slice(0, 5).map((node) => `Kavram: ${node.title}`) : [];
     const permittedRecords = moduleRecords
-      .filter((r) => !r.isArchived && preferences.aiPermittedDomains[r.privacyDomain])
-      .filter((r) => (activeModule ? r.moduleId === activeModule.id || r.privacyDomain === 'genel' : r.privacyDomain === 'genel'))
-      .slice(0, 5)
-      .map((r) => `- Modül Kaydı (${r.moduleId}): ${r.title}${r.subtitle ? ` — ${r.subtitle}` : ''}`)
-      .join('\n');
-
-    return [recentBooks, recentQuotes, recentNodes, permittedRecords].filter(Boolean).join('\n');
+      .filter((record) => !record.isArchived && record.moduleId === activeModule?.id &&
+        preferences.aiPermittedDomains[record.privacyDomain] &&
+        !(record.payload as { hideFromGlobalSearch?: boolean })?.hideFromGlobalSearch)
+      .slice(0, 5).map((record) => `Modül kaydı: ${record.title}`);
+    return [...recentBooks, ...recentQuotes, ...recentNodes, ...permittedRecords].join('\n').slice(0, 8000);
   };
 
   const quickPrompts = (() => {
@@ -129,16 +118,15 @@ export function EvrenAssistantDrawer() {
     setSending(true);
 
     try {
-      const res = await fetch('/api/ai/assist', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: currentPrompt,
-          activeModule: activeModule ? `${activeModule.name} (${activeModule.shortDescription})` : 'Ana Kontrol Paneli',
-          contextSummary: buildPermittedContextSummary(),
-          history: messages.map((m) => ({ role: m.role, text: m.text })),
-        }),
+      const res = await requestAssistant({
+        prompt: currentPrompt,
+        activeModule: activeModule?.name,
+        contextSummary: shareContext ? buildPermittedContextSummary() : undefined,
+        history: shareContext ? messages.slice(-6).map((message) => ({
+          role: message.role, text: message.text.slice(0, 1500),
+        })) : undefined,
       });
+      setShareContext(false);
       const data = await res.json();
 
       if (!res.ok) {
@@ -162,13 +150,13 @@ export function EvrenAssistantDrawer() {
           },
         ]);
       }
-    } catch {
+    } catch (error) {
       setMessages((prev) => [
         ...prev,
         {
           id: `m-${Date.now()}`,
           role: 'model',
-          text: 'Yapay zekâ servisine bağlanılamadı. Yerel modüller çalışmaya devam etmektedir.',
+          text: error instanceof Error ? error.message : 'Yapay zekâ servisine bağlanılamadı.',
         },
       ]);
     } finally {
@@ -229,7 +217,7 @@ export function EvrenAssistantDrawer() {
         {!preferences.aiAssistantEnabled
           ? 'Asistan Ayarlardan devre dışı bırakıldı.'
           : aiServerConfigured === false
-            ? 'Sunucu yapay zekâ anahtarı henüz yapılandırılmadı; temel modüller tam çalışır.'
+            ? 'Sunucu yapılandırması bekleniyor.'
             : 'Üretilen yanıtlar kaynaklı kayıtlarınızdan ayrıdır ve onayınız olmadan kaydedilmez.'}
       </div>
 
@@ -300,6 +288,13 @@ export function EvrenAssistantDrawer() {
         </div>
       )}
 
+      <div className="px-4 pt-2 text-sm">
+        <p>Sorunuz, yanıt üretmek için Gemini’ye gönderilir. <Link to="/ayarlar" onClick={() => setAiDrawerOpen(false)} className="underline">Oturum ve izin ayarları</Link></p>
+        <label className="my-2 flex min-h-8 items-center gap-2">
+          <input type="checkbox" checked={shareContext} disabled={sending} onChange={(event) => setShareContext(event.target.checked)} />
+          Bu soruya izinli kayıt özetlerini ve son konuşmayı ekle
+        </label>
+      </div>
       <form
         onSubmit={handleSend}
         className="p-4 border-t border-black/10 dark:border-white/10 flex items-center gap-2"
@@ -307,6 +302,8 @@ export function EvrenAssistantDrawer() {
         <input
           type="text"
           value={prompt}
+          maxLength={4000}
+          aria-label="Asistana soru"
           onChange={(e) => setPrompt(e.target.value)}
           disabled={!preferences.aiAssistantEnabled || sending}
           placeholder={
@@ -314,7 +311,7 @@ export function EvrenAssistantDrawer() {
               ? 'Düşünsel soru veya özet isteği yazın...'
               : 'Asistan devre dışı'
           }
-          className="flex-1 px-3 py-2 text-sm rounded-lg bg-[#EFECE5] dark:bg-[#10151E] border border-black/10 dark:border-white/10 text-[#141923] dark:text-[#F1F3F5] focus:outline-none focus:border-[#8C6B32] dark:focus:border-[#D6B782]"
+          className="min-w-0 flex-1 px-3 py-2 text-sm rounded-lg bg-[#EFECE5] dark:bg-[#10151E] border border-black/10 dark:border-white/10 text-[#141923] dark:text-[#F1F3F5] focus:outline-none focus:border-[#8C6B32] dark:focus:border-[#D6B782]"
         />
         <button
           type="submit"

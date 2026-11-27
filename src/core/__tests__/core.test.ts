@@ -401,3 +401,82 @@ test('computeSolarReferenceTimes formats valid HH:MM strings across full year wi
     }
   }
 });
+
+test('all modules have distinct study activities', async () => {
+  const { MODULE_STUDIES } = await import('../registry/studies.ts');
+  assert.deepEqual(Object.keys(MODULE_STUDIES).sort(), MODULES.map(({ id }) => id).sort());
+  assert.equal(new Set(Object.values(MODULE_STUDIES).map(({ title }) => title)).size, 23);
+  assert.ok(Object.values(MODULE_STUDIES).every(({ steps }) => steps.length === 3));
+});
+
+test('search ranks Turkish titles, indexes record content, and excludes hidden source nodes', () => {
+  const records: ModuleRecord[] = [
+    { id: 'a1', moduleId: 'siir-deryasi', entityType: 'module_study', title: 'Şiir Okuması',
+      category: 'Atölye', tags: ['şiir'], isFavorite: false, isArchived: false, privacyDomain: 'genel',
+      payload: { body: 'İç içe imgeler', apiToken: 'buaranmamali' }, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+    { id: 'a2', moduleId: 'siir-deryasi', entityType: 'poem', title: 'Gizli çalışma',
+      category: 'Atölye', tags: [], isFavorite: false, isArchived: false, privacyDomain: 'kisisel',
+      payload: { hideFromGlobalSearch: true }, createdAt: '2026-01-01', updatedAt: '2026-01-01' },
+  ];
+  const data = {
+    books: [], quotes: [], quickNotes: [], moduleSettings: [], moduleRecords: records, preferences: DEFAULT_PREFERENCES,
+    knowledgeNodes: [{ id: 'a2-node', title: 'Gizli çalışma', nodeType: 'kavram' as const,
+      sourceModule: records[1].moduleId, sourceEntityId: 'a2', summary: '', tags: [], x: 1, y: 2,
+      createdAt: '2026-01-01', updatedAt: '2026-01-01' }],
+  };
+  assert.equal(searchEcosystem('siir okumasi', data)[0]?.id, 'a1');
+  assert.equal(searchEcosystem('imgeler siir', data)[0]?.route, '/modul/siir-deryasi/calisma?workspaceId=a1');
+  assert.equal(searchEcosystem('gizli calisma', data).length, 0);
+  assert.equal(searchEcosystem('buaranmamali', data).length, 0);
+  assert.equal(searchEcosystem('siir', data, { dateFrom: '2026-01-02' }).length, 0);
+});
+
+test('external source adapters preserve native formats and repeatable identities', async () => {
+  const { prepareExternalImport } = await import('../services/externalImports.ts');
+  const fixtures: Record<string, unknown> = {
+    'dijital-kutuphanem': { userBooks: [{ id: 'a', title: 'Roman', status: 'reading', currentPage: 27 }] },
+    'alinti-defterim': { quotes: [{ text: 'Bir cümle', book: 'Bir kitap', page: '25' }], dictionary: [{ word: 'Yol', meaning: 'Yöntem' }] },
+    'sohbet-arsivi': { SA_FAVS: ['one'] },
+    'siir-deryasi': { app: 'siir-deryasi', ownPoems: [{ id: 'own', title: 'Şiir', text: 'Bir dize' }] },
+    automusicpro: { app: 'AutoMusic Pro 4', data: { playlists: [{ name: 'Akşam' }] } },
+    'tekamul-yolunda': { version: 5, tasks: {}, journal: [{ id: 'a', title: 'Gün', content: 'Not' }] },
+    'mihrap-ve-minber': { version: 5, completed: { a: true } },
+    'namaz-yolculugum': { fatiha: 'done' },
+    'bizbize-riders': { app: 'BizBize Riders', messages: [{ text: 'Mesaj' }], deviceId: 'private-device' },
+    'bugun-ne-yesem': { version: 1, staples: false, selected: ['limon'], custom: [], favorites: [], shopping: [] },
+  };
+  for (const app of EXISTING_APPS_LIST) {
+    if (!fixtures[app.appId]) {
+      await assert.rejects(prepareExternalImport(app, '{}'), /desteklenen kayıt bulunamadı/);
+      continue;
+    }
+    const content = JSON.stringify(fixtures[app.appId]);
+    const parsed = await prepareExternalImport(app, content);
+    const repeated = await prepareExternalImport(app, content);
+    const ids = (data: typeof parsed) => [...data.books, ...data.quotes, ...data.records].map((item) => item.id);
+    assert.ok(ids(parsed).length > 0, app.appId);
+    assert.deepEqual(ids(parsed), ids(repeated));
+    if (app.appId === 'dijital-kutuphanem') assert.equal(parsed.books[0].status, 'okunuyor');
+    if (app.appId === 'bizbize-riders') {
+      assert.equal(parsed.records[0].privacyDomain, 'kisisel');
+      assert.equal(JSON.stringify(parsed.records[0]).includes('private-device'), false);
+    }
+  }
+});
+
+test('assistant rejects unsigned and unauthorized requests before contacting Gemini', async (t) => {
+  const { onRequestPost } = await import('../../../functions/api/ai/assist.ts');
+  const env = { GEMINI_API_KEY: 'test', SUPABASE_URL: 'https://example.invalid',
+    SUPABASE_PUBLISHABLE_KEY: 'test', AI_ALLOWED_USER_IDS: 'allowed' };
+  const url = 'https://local.invalid/api/ai/assist';
+  const noToken = await onRequestPost({ request: new Request(url, { method: 'POST' }), env });
+  assert.equal(noToken.status, 401);
+  assert.equal(noToken.headers.get('cache-control'), 'no-store');
+  assert.equal((await onRequestPost({ request: new Request(url, { method: 'POST' }), env: {} })).status, 503);
+  const stub = t.mock.method(globalThis, 'fetch', async () => Response.json({ id: 'another-user' }));
+  const denied = await onRequestPost({ request: new Request(url, {
+    method: 'POST', headers: { Authorization: 'Bearer test' },
+  }), env });
+  assert.equal(denied.status, 403);
+  assert.equal(stub.mock.callCount(), 1);
+});

@@ -1,89 +1,67 @@
-/**
- * Supabase Cloud Sync & Authentication Adapter (Stub / Production Ready)
- * Provides offline-first IndexedDB synchronization with Supabase cloud storage,
- * user authentication state, RLS security policies documentation, and conflict resolution.
- */
+import { createClient } from '@supabase/supabase-js';
+import type { ExportBundle } from '../types/entities';
 
-export interface CloudUser {
-  id: string;
-  email: string;
-  fullName?: string;
-  isAuthenticated: boolean;
-}
-
-export interface SyncConflictResolution<T> {
-  localRecord: T;
-  cloudRecord: T;
-  resolvedRecord: T;
-  strategy: 'local_wins' | 'cloud_wins' | 'merged';
-}
-
-export class SupabaseSyncAdapter {
-  private supabaseUrl: string;
-  private supabaseAnonKey: string;
-  private currentUser: CloudUser | null = null;
-  private isConnectedToCloud: boolean = false;
-
-  constructor(url?: string, anonKey?: string) {
-    this.supabaseUrl = url || import.meta.env.VITE_SUPABASE_URL || '';
-    this.supabaseAnonKey = anonKey || import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-    this.isConnectedToCloud = Boolean(this.supabaseUrl && this.supabaseAnonKey);
-  }
-
-  public getCloudStatus(): { isConnected: boolean; user: CloudUser | null } {
-    return {
-      isConnected: false,
-      user: this.currentUser,
-    };
-  }
-
-  public async signIn(_email: string): Promise<CloudUser> {
-    this.currentUser = null;
-    throw new Error('Gerçek Supabase kimlik doğrulaması henüz yapılandırılmadı. Yerel kullanım için giriş gerekmez.');
-  }
-
-  public async signOut(): Promise<void> {
-    this.currentUser = null;
-  }
-
-  /**
-   * Resolve conflict between local and cloud record using Last-Write-Wins (LWW).
-   */
-  public resolveConflict<T extends { updatedAt?: string }>(
-    local: T,
-    cloud: T
-  ): SyncConflictResolution<T> {
-    const localTime = new Date((local as { updatedAt?: string }).updatedAt ?? 0).getTime();
-    const cloudTime = new Date((cloud as { updatedAt?: string }).updatedAt ?? 0).getTime();
-
-    const strategy = localTime >= cloudTime ? 'local_wins' : 'cloud_wins';
-    const resolvedRecord = strategy === 'local_wins' ? local : cloud;
-
-    return {
-      localRecord: local,
-      cloudRecord: cloud,
-      resolvedRecord,
-      strategy,
-    };
-  }
-
-  /**
-   * Row Level Security (RLS) policies SQL template for Supabase PostgreSQL tables:
-   * 
-   * CREATE POLICY "Users can only access their own ecosystem records"
-   * ON public.module_records
-   * FOR ALL
-   * USING (auth.uid() = user_id)
-   * WITH CHECK (auth.uid() = user_id);
-   */
-  public getRlsPoliciesDocumentation(): string {
-    return `
-      -- Supabase RLS Security Policies
-      ALTER TABLE public.module_records ENABLE ROW LEVEL SECURITY;
-      CREATE POLICY "User Data Isolation" ON public.module_records
-      FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
-    `;
+const url = import.meta.env?.VITE_SUPABASE_URL?.trim();
+const key = (import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY || import.meta.env?.VITE_SUPABASE_ANON_KEY)?.trim();
+function cloudClient() {
+  if (!url || !key) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && !(parsed.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(parsed.hostname))) return null;
+    if (key.startsWith('sb_secret_')) return null;
+    if (!key.startsWith('sb_publishable_')) {
+      const payload = JSON.parse(atob(key.split('.')[1]?.replace(/-/g, '+').replace(/_/g, '/')));
+      if (payload.role !== 'anon') return null;
+    }
+    return createClient(url, key);
+  } catch {
+    return null;
   }
 }
 
-export const supabaseAdapter = new SupabaseSyncAdapter();
+export const supabase = cloudClient();
+
+export interface CloudBackup {
+  revision: number;
+  created_at: string;
+}
+
+export async function listBackups(): Promise<CloudBackup[]> {
+  if (!supabase) throw new Error('Supabase yapılandırması eksik.');
+  const { data, error } = await supabase.from('dijital_evren_backups')
+    .select('revision,created_at').order('revision', { ascending: false }).limit(20);
+  if (error) throw new Error('Bulut yedekleri okunamadı. Oturumu ve veri tabanı kurulumunu kontrol edin.');
+  return data;
+}
+
+export async function readBackup(revision: number): Promise<ExportBundle> {
+  if (!supabase) throw new Error('Supabase yapılandırması eksik.');
+  const { data, error } = await supabase.from('dijital_evren_backups')
+    .select('bundle').eq('revision', revision).single();
+  if (error) throw new Error('Seçilen yedek okunamadı.');
+  return data.bundle;
+}
+
+export async function writeBackup(bundle: ExportBundle, previousRevision: number): Promise<void> {
+  if (!supabase) throw new Error('Supabase yapılandırması eksik.');
+  if (new Blob([JSON.stringify(bundle)]).size > 7 * 1024 * 1024) {
+    throw new Error('Bulut yedeği 7 MB sınırını aşıyor. Tam veriyi JSON dosyası olarak indirebilirsiniz.');
+  }
+  const { error } = await supabase.from('dijital_evren_backups').insert({
+    revision: previousRevision + 1, bundle,
+  });
+  if (error?.code === '23505') throw new Error('Başka bir cihaz yeni yedek kaydetti. Eşitlemeyi tekrar başlatın.');
+  if (error) throw new Error('Bulut yedeği kaydedilemedi. Yerel kayıtlarınız korunuyor.');
+}
+
+export async function requestAssistant(body: object): Promise<Response> {
+  const session = await supabase?.auth.getSession();
+  const token = session?.data.session?.access_token;
+  if (!token) throw new Error('Evren Asistanı için Ayarlar sayfasından Supabase oturumu açın.');
+  return fetch('/api/ai/assist', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(35000),
+  });
+}

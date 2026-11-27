@@ -17,7 +17,7 @@ import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHe
 import { RecordActionsBar } from '../../components/shared/RecordActionsBar';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface PoemPayload {
   kind: 'poem' | 'poet';
@@ -129,7 +129,7 @@ export function PoetrySeaModule() {
     deleteModuleRecord,
     bulkUpdateModuleRecords,
     addQuote,
-  } = useAppStore();
+  } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('siir-deryasi');

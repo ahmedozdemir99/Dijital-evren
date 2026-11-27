@@ -3,7 +3,7 @@ import { Calendar, CheckCircle2, Circle, Clock, Lock } from 'lucide-react';
 import { ModuleWorkbenchHeader } from '../../components/shared/ModuleWorkbenchHeader';
 import { localDateIso } from '../../core/services/integrationService';
 import type { ModuleRecord } from '../../core/types/entities';
-import { useAppStore } from '../../store/useAppStore';
+import { useModuleStore } from '../../store/useModuleStore';
 
 interface PrayerDayPayload {
   date: string;
@@ -56,7 +56,7 @@ export function computeSolarReferenceTimes(dateStr: string, lat: number, lng: nu
 }
 
 export function PrayerJourneyModule() {
-  const { moduleRecords, recordModuleOpen, addModuleRecord, updateModuleRecord } = useAppStore();
+  const { moduleRecords, recordModuleOpen, addModuleRecord, updateModuleRecord } = useModuleStore();
 
   useEffect(() => {
     recordModuleOpen('namaz-yolculugum');

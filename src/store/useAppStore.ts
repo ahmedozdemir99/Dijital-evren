@@ -1,3 +1,4 @@
+import type { ExternalImport } from '../core/services/externalImports';
 import { create } from 'zustand';
 import {
   DEFAULT_PREFERENCES,
@@ -160,6 +161,8 @@ interface AppState {
   importBooksBulk: (items: Array<Omit<Book, 'id' | 'createdAt' | 'updatedAt'>>) => Promise<number>;
 
   exportBundle: (scope?: 'full' | string) => Promise<ExportBundle>;
+  importExternal: (data: ExternalImport) => Promise<number>;
+  mergeCloudBackup: (bundle: ExportBundle) => Promise<void>;
   importBundle: (bundle: ExportBundle, mode?: 'replace' | 'merge') => Promise<void>;
   clearDemoData: () => Promise<void>;
   resetAllData: () => Promise<void>;
@@ -1105,6 +1108,17 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   exportBundle: (scope = 'full') => ecosystemRepository.exportAll(scope),
+
+  importExternal: async (data) => {
+    const count = await ecosystemRepository.importExternal(data);
+    set(await ecosystemRepository.loadAll());
+    return count;
+  },
+
+  mergeCloudBackup: async (bundle) => {
+    await ecosystemRepository.mergeCloudBackup(bundle);
+    set(await ecosystemRepository.loadAll());
+  },
 
   importBundle: async (bundle, mode = 'replace') => {
     await ecosystemRepository.importBundle(bundle, mode);
