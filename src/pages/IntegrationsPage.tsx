@@ -54,7 +54,7 @@ function IntegrationCard({ app }: { app: ExternalAppConfig }) {
     <article id={app.appId} className="scroll-mt-24 min-w-0 space-y-4 rounded-2xl border border-black/10 bg-white p-5 dark:border-white/10 dark:bg-[#1C2633]">
       <div>
         <p className="text-sm text-[#546070] dark:text-[#9BA7B6]">{getCenterById(app.centerId)?.name}</p>
-        <h2 className="mt-1 text-xl font-semibold">{app.name}</h2>
+        <h2 className="mt-1 text-xl font-semibold">{registry?.name ?? app.name}</h2>
       </div>
       <p className="text-sm leading-relaxed">{source.hint}</p>
       <div className="flex flex-wrap gap-2">

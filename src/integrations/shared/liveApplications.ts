@@ -8,6 +8,7 @@ export const INDEPENDENT_APPLICATIONS: Record<string, string> = {
   'bugun-ne-yesem': 'https://bugun-ne-yesem.pages.dev/',
   'karadeniz-asistani': 'https://karadeniz-asistani.pages.dev/',
   automusicpro: 'https://automusic-pro.ai.studio/',
+  'tekamul-yolunda': 'https://tek-mul-yolunda.pages.dev/',
 };
 
 export function independentSourceUrl(appId: string): string | undefined {
