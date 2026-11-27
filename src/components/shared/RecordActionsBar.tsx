@@ -262,9 +262,6 @@ export function RecordActionsBar({
         <div className="p-3 rounded-lg bg-[#F7F5F0] dark:bg-[#10151E] space-y-2 text-xs">
           <div className="flex items-center justify-between">
             <span className="font-semibold">İlişkili Dosya ve Medya</span>
-            <Link to="/medya" className="text-[#8C6B32] dark:text-[#D6B782] hover:underline">
-              Medya Merkezi
-            </Link>
           </div>
           {linkedAttachments.map((f) => (
             <div key={f.id} className="flex items-center justify-between gap-2">

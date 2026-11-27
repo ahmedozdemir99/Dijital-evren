@@ -111,6 +111,10 @@
     --menu-light: #812b68;
     --menu-dark: #f2b1df;
   }
+  .menu-link:where([data-menu-color="slate"]) {
+    --menu-light: #405268;
+    --menu-dark: #b9c9dc;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -576,14 +576,46 @@ test('original Mihrap Akademisi backup maps real lessons and preserves local edi
   assert.equal(exported.practiceChecks?.['m0-c0:1'], true);
 });
 
-test('every integration opens its own published URL', async () => {
+test('application links use the verified publications and the public academy route', async () => {
   const { INDEPENDENT_APPLICATIONS, independentApplicationHref } = await import('../../integrations/shared/liveApplications.ts');
-  assert.equal(Object.keys(INDEPENDENT_APPLICATIONS).length, EXISTING_APPS_LIST.length);
+  assert.equal(Object.keys(INDEPENDENT_APPLICATIONS).length, EXISTING_APPS_LIST.length + 1);
   assert.equal(independentApplicationHref('automusicpro'), 'https://automusic-pro.ai.studio/');
   assert.equal(independentApplicationHref('tekamul-yolunda'), 'https://tek-mul-yolunda.pages.dev/');
-  for (const { appId } of EXISTING_APPS_LIST) {
+  assert.equal(independentApplicationHref('bilge-akademi'), 'https://bilge-akademi4.pages.dev/');
+  assert.equal(independentApplicationHref('mihrap-ve-minber'), '/modul/mihrap-ve-minber/akademi');
+  for (const { appId } of EXISTING_APPS_LIST.filter((app) => app.appId !== 'mihrap-ve-minber')) {
     assert.equal(new URL(independentApplicationHref(appId)).protocol, 'https:');
   }
+});
+
+test('the application panel shows real reading, recent records and imported progress without demo data', async () => {
+  const { summarizeApplicationProgress } = await import('../services/applicationProgress.ts');
+  const day = '2026-11-27';
+  const older = '2026-11-20';
+  const book: Book = { id: 'b1', title: 'Kalıcı kitap', author: 'Yazar', category: 'Roman', status: 'okunuyor',
+    currentPage: 35, totalPages: 100, createdAt: older, updatedAt: day };
+  const quote: Quote = { id: 'q1', text: 'Özlü bir söz', author: 'Yazar', sourceTitle: 'Kaynak',
+    tags: ['Özlü Sözler'], isFavorite: false, createdAt: day, updatedAt: day };
+  const record = { id: 'habit', moduleId: 'tekamul-yolunda', entityType: 'habit', title: 'Okuma', category: '',
+    tags: [], privacyDomain: 'kisisel' as const, isFavorite: false, isArchived: false, createdAt: day, updatedAt: day,
+    payload: { completedDates: [day] } };
+  const summary = summarizeApplicationProgress({
+    books: [book, { ...book, id: 'demo', title: 'Örnek kitap', isDemo: true }, { ...book, id: 'archived', isArchived: true }],
+    quotes: [quote, { ...quote, id: 'regular', tags: [] }],
+    moduleRecords: [
+      record,
+      { ...record, id: 'word', moduleId: 'alinti-defterim', entityType: 'word_entry', title: 'Hikmet', payload: { meaningToday: 'Bilgelik' } },
+      { ...record, id: 'lesson', moduleId: 'mihrap-ve-minber', entityType: 'mihrap_academy_backup', payload: { version: 5, completed: { '0:0': true, '99:0': true } } },
+    ],
+  }, day);
+  const summaries = new Map(summary.map((item) => [item.appId, item]));
+  assert.equal(summaries.get('dijital-kutuphanem')?.recent?.[0].entries[0].detail, 'Yazar · 35/100 sayfa');
+  assert.deepEqual(summaries.get('dijital-kutuphanem')?.recent?.[1].entries.map((entry) => entry.id), ['b1']);
+  assert.deepEqual(summaries.get('alinti-defterim')?.metrics.map((metric) => metric.value), [1, 1, 1]);
+  assert.equal(summaries.get('alinti-defterim')?.recent?.[1].entries[0].href, '/entegrasyonlar/alinti-defterim#word');
+  assert.equal(summaries.get('tekamul-yolunda')?.metrics[0].value, '1/1');
+  assert.match(String(summaries.get('mihrap-ve-minber')?.metrics[0].value), /^1\/[1-9]\d*$/);
+  assert.equal(summaries.has('bilge-akademi'), false);
 });
 
 test('independent library, quote, poetry and habit backups produce usable local records', async () => {
